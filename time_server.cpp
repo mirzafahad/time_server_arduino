@@ -1,151 +1,96 @@
-/*******************************************************************************
- * File       : timeserver.c
- * Author     : Fahad Mirza (fmirz007@7-11.com)
- * Version    : V1.0
- * Created on : Sep 25, 2017
- * Modified   : May 19, 2019
- * Brief      : Time server infrastructure
- ******************************************************************************
- * @attention
- *
- * <h2><center>&copy; Copyright (c) 2017 HaxIoT
- * All rights reserved.</center></h2>
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted, provided that the following conditions are met:
- *
- * 1. Redistribution of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. Neither the name of HaxIoT nor the names of other
- *    contributors to this software may be used to endorse or promote products
- *    derived from this software without specific written permission.
- * 4. Redistribution and use of this software other than as permitted under
- *    this license is void and will automatically terminate your rights under
- *    this license.
- *
- * THIS SOFTWARE IS PROVIDED BY HAXIOT AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
- * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT
- * SHALL HAXIOT OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
- * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- ******************************************************************************
- */
+/***********************************************************************
+ * @file      time_server.cpp
+ * @author    Fahad Mirza (fmirz007@7-11.com) 
+ * @version   V1.0
+ * @brief     Time server infrastructure
+ ***********************************************************************/
 
-/*** Includes *****************************************************************/
+/*** Includes **********************************************************/
 #include <stddef.h>
 #include <Arduino.h>
 #include "time_server.h"
 
 
-/*** Private Variables ********************************************************/
-static TimerEvent_t *TimerListHead = NULL;
+/*** Private Variables *************************************************/
+static sTimerEvent_t *TimerListHead = NULL;
 
 
-/*** Private Functions Declarations ********************************************/
-static void InserTimerEvent(TimerEvent_t *obj);
-static bool Timer_Exists(TimerEvent_t *obj);
+/*** Private Functions Declarations ************************************/
+static void inserTimerEvent(sTimerEvent_t *obj);
+static bool timer_exists(sTimerEvent_t *obj);
 
 
-/*** Functions Definitions *****************************************************/
-/* 
- * Timer event initialization.
- * Param :   obj - TimerEvent_t object pointer,
- *           callback - Callback function pointer
- * Return:   none
- */
-void Timer_Init(TimerEvent_t *obj, void (*callback)(void))
+/*** Functions Definitions *********************************************/
+/*********************************************************************** 
+ * @brief      Timer event initialization
+ * @details    Initializes all the TimerEven_t variables with default
+ *             value
+ * @param[in]  obj - Timer event object pointer
+ * @param[in]  callback - Timer event's callback function pointer
+ * @return     None
+ ***********************************************************************/
+void Timer_Init(sTimerEvent_t *obj, void (*callback)(void))
 {
   obj->previousMillis = 0;
-  obj->Interval = 0;
-  obj->IsRunning = false;
-  obj->Callback = callback;
-  obj->Next = NULL;
+  obj->Interval       = 0;
+  obj->IsRunning      = false;
+  obj->Callback       = callback;
+  obj->Next           = NULL;
 }
 
-
-/* 
- * Start a particular timer event.
- * Param :   obj - TimerEvent_t object pointer,
- *           interval_ms - in milliseconds
- * Return:   none
- */
-void Timer_Start(TimerEvent_t *obj, uint32_t interval_ms)
+/*********************************************************************** 
+ * @brief      Set interval and start a timer event
+ * @param[in]  obj - TimerEvent_t object pointer
+ * @param[in]  interval_ms - in milliseconds
+ * @return     None
+ ***********************************************************************/
+void Timer_Start(sTimerEvent_t *obj, uint32_t interval_ms)
 {
+    if( (obj == NULL) || (timer_exists(obj) == true) )
+    {
+        return;
+    }
     obj->Interval = interval_ms;
     Timer_Start(obj);
 }
 
-void Timer_Start(TimerEvent_t *obj)
+/*********************************************************************** 
+ * @brief     Start a timer event
+ * @param[in] obj - TimerEvent_t object pointer
+ * @return    None
+ ***********************************************************************/
+void Timer_Start(sTimerEvent_t *obj)
 {
-    if( (obj == NULL) || (Timer_Exists(obj) == true) )
+    if( (obj == NULL) || (timer_exists(obj) == true) )
     {
         return;
     }
     obj->previousMillis = millis();
     obj->IsRunning = true;
-    InserTimerEvent(obj);
+    inserTimerEvent(obj);
 }
 
-void Timer_SetTime(TimerEvent_t *obj, uint32_t interval_ms)
+/*********************************************************************** 
+ * @brief      Set timer event's interval
+ * @param[in]  obj - TimerEvent_t object pointer
+ * @param[in]  interval_ms - interval in milliseconds
+ * @return     None
+ ***********************************************************************/
+void Timer_SetTime(sTimerEvent_t *obj, uint32_t interval_ms)
 {
+    if(obj == NULL)
+    {
+        return;
+    }
     obj->Interval = interval_ms;
 }
 
-static bool Timer_Exists( TimerEvent_t *obj )
-{
-  TimerEvent_t* cur = TimerListHead;
-
-  while( cur != NULL )
-  {
-    if( cur == obj )
-    {
-      return true;
-    }
-    cur = cur->Next;
-  }
-  return false;
-}
-/* 
- * Linked list of timer events. Add timer event to the list
- * Param :   obj - TimerEvent_t object pointer
- * Return:   none
- */
-static void InserTimerEvent(TimerEvent_t *obj)
-{
-  if(TimerListHead == NULL)
-  {
-    TimerListHead = obj; 
-  }
-  else
-  {
-    TimerEvent_t* cur = TimerListHead;
-    
-    while (cur->Next != NULL )
-    {
-       cur = cur->Next;
-    }
-    cur->Next = obj;
-    obj->Next = NULL;
-  }
-}
-
-/* 
- * Stop the timer event and remove from the linked list.
- * Param :   obj - TimerEvent_t object pointer
- * Return:   none
- */
-void Timer_Stop(TimerEvent_t *obj)
+/*********************************************************************** 
+ * @brief      Stop the timer event and remove from the linked list
+ * @param[in]  obj - TimerEvent_t object pointer
+ * @return     None
+ ***********************************************************************/
+void Timer_Stop(sTimerEvent_t *obj)
 {
   if(obj == NULL)
   {
@@ -154,8 +99,8 @@ void Timer_Stop(TimerEvent_t *obj)
   obj->IsRunning = false;
   obj->previousMillis = 0;
   
-  TimerEvent_t* prev = TimerListHead;
-  TimerEvent_t* cur = TimerListHead;
+  sTimerEvent_t* prev = TimerListHead;
+  sTimerEvent_t* cur = TimerListHead;
 
   if(TimerListHead == obj)
   {
@@ -179,24 +124,33 @@ void Timer_Stop(TimerEvent_t *obj)
   }
 }
 
-void Timer_Restart(TimerEvent_t *obj)
+/*********************************************************************** 
+ * @brief      Restart a timer event
+ * @details    Restart a timer event by stopping the timer event and 
+ *             then starting it again
+ * @param[in]  obj - TimerEvent_t object pointer
+ * @return     None
+ ***********************************************************************/
+void Timer_Restart(sTimerEvent_t *obj)
 {
     Timer_Stop ( obj );
     Timer_Start( obj );
 }
 
-/* 
- * Call this fucnction in main loop.
- * Param :   none
- * Return:   none
- */
+/*********************************************************************** 
+ * @brief    Handles the time for all timer event
+ * @details  Call this fucnction in loop()
+ * @param    None
+ * @return   None
+ ***********************************************************************/
 void Timer_Handler(void)
 {
   unsigned long currentMillis = millis();
 
-  TimerEvent_t* cur = TimerListHead;
+  sTimerEvent_t* cur = TimerListHead;
   while(cur != NULL)
   {
+    // This also handles the uint32_t wrap around
     if((unsigned long)(currentMillis - cur->previousMillis) >= cur->Interval)
     {
         // Remove the instance from the linkedList
@@ -207,20 +161,78 @@ void Timer_Handler(void)
   }
 }
 
+/*********************************************************************** 
+ * @brief    Print timer instance 
+ * @details  Debug function to print all timer instances' address in 
+ *           the linked list
+ * @param    None
+ * @return   None
+ ***********************************************************************/
 void Timer_PrintAllInstance(void)
 {
-  TimerEvent_t* cur = TimerListHead;
-  Serial.println("PrintAllInstance:");
-   while(cur != NULL)
+  #if DEBUG
+  sTimerEvent_t* cur = TimerListHead;
+  DBG_Println("PrintAllInstance:");
+  
+  while(cur != NULL)
   {
     uint32_t add = (uint32_t)cur;
     Serial.print(add, HEX);
     Serial.println();
     cur = cur->Next;
   }
-  Serial.println("PrintAllInstance: Done");
+
+  DBG_Println(F("PrintAllInstance: Done"));
+  #endif
 }
 
 
-/************************ (C) COPYRIGHT HaxIoT ************************/
+/*********************************************************************** 
+ * @brief      Add timer event to the linked list
+ * @param[in]  obj - sTimerEvent_t object pointer
+ * @return     None
+ ***********************************************************************/
+static void inserTimerEvent(sTimerEvent_t *obj)
+{
+  if(TimerListHead == NULL)
+  {
+    TimerListHead = obj; 
+  }
+  else
+  {
+    // Find the next available space to store
+    sTimerEvent_t* cur = TimerListHead;
+    
+    while (cur->Next != NULL )
+    {
+       cur = cur->Next;
+    }
+    cur->Next = obj;
+    obj->Next = NULL;
+  }
+}
+
+/*********************************************************************** 
+ * @brief      Check if a timer instance is already exist in the 
+ *             linked list
+ * @param[in]  obj - sTimerEvent_t object pointer
+ * @return     None
+ ***********************************************************************/
+static bool timer_exists(sTimerEvent_t *obj)
+{
+  sTimerEvent_t* cur = TimerListHead;
+
+  while(cur != NULL)
+  {
+    if( cur == obj )
+    {
+      return true;
+    }
+    cur = cur->Next;
+  }
+
+  return false;
+}
+
+
 /*****END OF FILE****/

@@ -24,5 +24,4 @@ void loop()
 void onBlinkTimerEvent(void)
 {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  Timer_Start(&BlinkTimer);
 }

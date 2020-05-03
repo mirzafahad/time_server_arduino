@@ -17,6 +17,7 @@ typedef struct sTimerEvent
   unsigned long previousMillis; //<! Last Mills value to compare with mills()
   long Interval;                //<! Interval before execute callback()
   bool IsRunning;               //<! Is the timer currently running?
+  bool Repeatable;
   void (*Callback)(void);       //<! Timer IRQ callback function
   struct sTimerEvent *Next;     //<! Pointer to the next Timer object.
 }sTimerEvent_t;
@@ -84,5 +85,3 @@ void Timer_Handler(void);
 void Timer_PrintAllInstance(void);
 
 #endif /* __TIME_SERVER_H__ */
-
-

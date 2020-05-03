@@ -34,6 +34,7 @@ void Timer_Init(sTimerEvent_t *obj, void (*callback)(void))
   obj->previousMillis = 0;
   obj->Interval       = 0;
   obj->IsRunning      = false;
+  obj->Repeatable     = true;
   obj->Callback       = callback;
   obj->Next           = NULL;
 }
@@ -156,6 +157,11 @@ void Timer_Handler(void)
         // Remove the instance from the linkedList
         Timer_Stop(cur);
         cur->Callback();
+
+        if(cur->Repeatable)
+        {
+          Timer_Start(cur);
+        }
     }
     cur = cur->Next;
   }

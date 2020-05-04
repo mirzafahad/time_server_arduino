@@ -1,12 +1,12 @@
 /***********************************************************************
  * @file       : time_server.h
- * @author     : Fahad Mirza (fahad.mirza@7-11.com)
+ * @author     : Fahad Mirza (fahadmirza8@gmail.com)
  * @version    : V1.0
  * @brief      : Time server driver
  ***********************************************************************/
 
-#ifndef __TIMESERVER_H__
-#define __TIMESERVER_H__
+#ifndef TIME_SERVER_H_
+#define TIME_SERVER_H_
 
 #include <stdbool.h>
 
@@ -23,48 +23,7 @@ typedef struct sTimerEvent
 }sTimerEvent_t;
 
 /*** Public Functions Declarations *************************************/
-/*********************************************************************** 
- * @brief      Timer event initialization
- * @details    Initializes all the TimerEven_t variables with default
- *             value
- * @param[in]  obj - Timer event object pointer
- * @param[in]  callback - Timer event's callback function pointer
- * @return     None
- ***********************************************************************/
-void Timer_Init(sTimerEvent_t *obj, void (*callback)(void));
 
-/*********************************************************************** 
- * @brief      Set interval and start a timer event
- * @param[in]  obj - TimerEvent_t object pointer
- * @param[in]  interval_ms - in milliseconds
- * @return     None
- ***********************************************************************/
-void Timer_Start(sTimerEvent_t *obj, uint32_t interval_ms);
-void Timer_Start(sTimerEvent_t *obj);
-
-/*********************************************************************** 
- * @brief      Set timer event's interval
- * @param[in]  obj - TimerEvent_t object pointer
- * @param[in]  interval_ms - interval in milliseconds
- * @return     None
- ***********************************************************************/
-void Timer_SetTime(sTimerEvent_t *obj, uint32_t interval_ms);
-
-/*********************************************************************** 
- * @brief      Stop the timer event and remove from the linked list
- * @param[in]  obj - TimerEvent_t object pointer
- * @return     None
- ***********************************************************************/
-void Timer_Stop(sTimerEvent_t *obj);
-
-/*********************************************************************** 
- * @brief      Restart a timer event
- * @details    Restart a timer event by stopping the timer event and 
- *             then starting it again
- * @param[in]  obj - TimerEvent_t object pointer
- * @return     None
- ***********************************************************************/
-void Timer_Restart(sTimerEvent_t *obj);
 
 
 /*********************************************************************** 
@@ -84,4 +43,66 @@ void Timer_Handler(void);
  ***********************************************************************/
 void Timer_PrintAllInstance(void);
 
-#endif /* __TIME_SERVER_H__ */
+
+// Function pointer typedef. To use inside TimerEvent class
+typedef void (*Callback)(void);
+
+/**************************************************************************/
+/*! 
+    @brief  Class that stores state and functions for interacting with Time Server
+*/
+/**************************************************************************/
+class TimerEvent
+{
+  private:
+    uint32_t Previous_ms; // Last Mills value to compare with mills()
+    uint32_t Interval_ms;    // Interval before execute callback()
+    boolean  IsRunning;      // Is the timer currently running?
+    boolean  Repeat;         // Is this event needs to be repeated
+    Callback Cb;             // Timer IRQ callback function
+
+  public:
+    /* 
+     * Timer event initialization.
+     * Param :   interval - Time interval for callback,
+     *           cb       - Callback function pointer
+     *           repeat   - Should the event repeat after executing callback
+     * Return:   none
+     */
+    TimerEvent(uint32_t interval_ms, Callback cb, boolean repeat = false);
+    TimerEvent(void);
+    ~TimerEvent();
+
+    void setCallback(Callback cb);
+    
+    /*
+     * Set timer event's interval
+     * Param :   interval_ms - interval in milliseconds
+     * Return:   none
+     */
+    void setInterval(uint32_t interval_ms);
+
+    /* 
+     * Start a particular timer event.
+     * Param :   interval_ms - in milliseconds
+     * Return:   none
+     */
+    void start(uint32_t interval_ms);
+    void start(void);
+
+    /* 
+     * Stop the timer event and remove from the linked list.
+     * Param :   none
+     * Return:   none
+     */
+    void stop(void);
+
+    /*
+     * Restart a timer event by stopping the timer event and 
+     * then starting it again
+     * Param :   none
+     * Return:   none
+     */
+    void restart(void);
+}
+#endif // TIME_SERVER_H_

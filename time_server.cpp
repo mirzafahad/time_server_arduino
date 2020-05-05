@@ -120,7 +120,10 @@ void Timer_Handler(void)
     {
         // Remove the instance from the linkedList
         Timer_Stop(cur);
-        cur->Callback();
+        if(cur->Callback != NULL)
+        {
+          cur->Callback();
+        }
 
         if(cur->Repeatable)
         {

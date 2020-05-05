@@ -56,37 +56,39 @@ TimerEvent::TimerEvent(void)
   Cb = NULL;
 }
 
-TimerEvent::setCallback(Callback cb)
+void TimerEvent::setCallback(Callback cb)
 {
   Cb = cb;
 }
 
-TimerEvent::setInterval(uint32_t interval_ms)
+void TimerEvent::setInterval(uint32_t interval_ms)
 {
   Interval_ms = interval_ms;
 }
 
 
-TimerEvent::start(uint32_t interval_ms)
+void TimerEvent::start(uint32_t interval_ms)
 {
   Interval_ms = interval_ms;
   start();
 }
 
 
-TimerEvent::start(void)
+void TimerEvent::start(void)
 {
+    // If no time is provided, dont include it
+    if(Interval_ms == 0)
+    {
+      return;
+    }
+    
     // If the event is already in the linked list,
     // no need to include again
     if(timerEventExists(this) == true)
     {
         return;
     }
-
-    // If no time is provided, dont include it
-    if(Interval_ms == 0)
     {
-      return;
     }
     ElapsedTime_ms = Interval_ms;
     IsRunning = true;
@@ -94,7 +96,7 @@ TimerEvent::start(void)
 }
 
 
-TimerEvent::stop(void)
+void TimerEvent::stop(void)
 {
   IsRunning = false;
   ElapsedTime_ms = 0;
@@ -143,7 +145,7 @@ static bool timerEventExists(TimerEvent *obj)
  * @param[in]  obj - sTimerEvent_t object pointer
  * @return     None
  ***********************************************************************/
-static void inserTimerEvent(TimerEvent *obj)
+static void insertTimerEvent(TimerEvent *obj)
 {
   if(TimerListHead == NULL)
   {

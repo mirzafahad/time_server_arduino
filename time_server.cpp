@@ -100,7 +100,6 @@ void TimerEvent::stop(void)
 {
   IsRunning = false;
   ElapsedTime_ms = 0;
-  removeTimerEvent(this);
 }
 
 /*********************************************************************** 
@@ -163,38 +162,6 @@ static void insertTimerEvent(TimerEvent *obj)
 
     cur->next = new sTimerEventNode_t{obj, NULL};
   }
-}
-
-static void removeTimerEvent(TimerEvent *obj)
-{
-    if(TimerListHead == NULL)
-    {
-        return;
-    }
-
-    sTimerEventNode_t *prev = TimerListHead;
-    sTimerEventNode_t *cur = TimerListHead;
-  
-    if(TimerListHead->timerEvent == obj)
-    {
-        TimerListHead = TimerListHead->next;
-    }
-    else
-    {
-      while(cur != NULL)
-      {
-        if(cur->timerEvent == obj)
-        {
-          prev->next = cur->next;
-          return;
-        }
-        else
-        {
-          prev = cur;
-          cur = cur->next;
-        }
-      }
-    }
 }
 
 /*********************************************************************** 

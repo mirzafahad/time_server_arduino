@@ -44,6 +44,9 @@ class TimerEvent
   private:
     uint32_t Previous_ms; // Last Mills value to compare with mills()
     uint32_t Interval_ms;    // Interval before executing callback()
+    
+
+  public:
     boolean  IsRunning;      // Is the timer currently running?
     boolean  Repeat;         // Is this event needs to be repeated
     Callback Cb;             // Timer event callback function

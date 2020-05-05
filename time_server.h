@@ -10,15 +10,7 @@
 
 #include <stdbool.h>
 
-/*** Public Typedef ****************************************************/
-// Timer Event struct
-typedef struct sTimerEvent
-{
-  struct sTimerEvent *Next;     //<! Pointer to the next Timer object.
-}sTimerEvent_t;
-
 /*** Public Functions Declarations *************************************/
-
 
 
 /*********************************************************************** 

@@ -11,14 +11,23 @@
 #include "time_server.h"
 
 
+typedef struct sTimerEventNode
+{
+  TimerEvent *timerEvent;
+  struct sTimerEventNode *next;
+}sTimerEventNode_t;
+
+
 /*** Private Variables *************************************************/
-static TimerEventNode *TimerListHead = NULL;
+static sTimerEventNode_t *TimerListHead = NULL;
 
 
 /*** Private Functions Declarations ************************************/
-static void inserTimerEvent(sTimerEvent_t *obj);
-static bool timer_exists(sTimerEvent_t *obj);
-
+static void initTimerISR(void);
+static void disableTimerISR(void);
+static void insertTimerEvent(TimerEvent *obj);
+static bool timerEventExists(TimerEvent *obj);
+static void removeTimerEvent(TimerEvent *obj);
 
 /*** Functions Definitions *********************************************/
 /*********************************************************************** 
@@ -67,39 +76,123 @@ TimerEvent::start(uint32_t interval_ms)
 
 TimerEvent::start(void)
 {
-    if(timer_exists(this) == true)
+    // If the event is already in the linked list,
+    // no need to include again
+    if(timerEventExists(this) == true)
     {
         return;
     }
 
+    // If no time is provided, dont include it
     if(Interval_ms == 0)
     {
       return;
     }
     ElapsedTime_ms = Interval_ms;
     IsRunning = true;
-    inserTimerEvent(this);
+    insertTimerEvent(this);
 }
 
 
-TimerEvent::Stop(void)
+TimerEvent::stop(void)
 {
   IsRunning = false;
   ElapsedTime_ms = 0;
-  remove_timerEvent(this);
+  removeTimerEvent(this);
 }
 
 /*********************************************************************** 
  * @brief      Restart a timer event
  * @details    Restart a timer event by stopping the timer event and 
  *             then starting it again
- * @param[in]  obj - TimerEvent_t object pointer
+ * @param[in]  none
+ * @return     none
+ ***********************************************************************/
+void TimerEvent::restart(void)
+{
+    stop();
+    start();
+}
+
+/************************ static functions common to all instances ************************/
+
+/*********************************************************************** 
+ * @brief      Check if a TimerEvent instance is already exist  
+ *             in the linked list
+ * @param[in]  obj - sTimerEvent_t object pointer
  * @return     None
  ***********************************************************************/
-void Timer_Restart(sTimerEvent_t *obj)
+static bool timerEventExists(TimerEvent *obj)
 {
-    Timer_Stop ( obj );
-    Timer_Start( obj );
+  sTimerEventNode_t *cur = TimerListHead;
+
+  while(cur != NULL)
+  {
+    if(cur->timerEvent == obj)
+    {
+      return true;
+    }
+    cur = cur->next;
+  }
+
+  return false;
+}
+
+/*********************************************************************** 
+ * @brief      Add timer event to the linked list
+ * @param[in]  obj - sTimerEvent_t object pointer
+ * @return     None
+ ***********************************************************************/
+static void inserTimerEvent(TimerEvent *obj)
+{
+  if(TimerListHead == NULL)
+  {
+    TimerListHead = new sTimerEventNode_t{obj, NULL};
+  }
+  else
+  {
+    // Find the next available space to store
+    sTimerEventNode_t *cur = TimerListHead;
+    
+    while (cur->next != NULL )
+    {
+       cur = cur->next;
+    }
+
+    cur->next = new sTimerEventNode_t{obj, NULL};
+  }
+}
+
+static void removeTimerEvent(TimerEvent *obj)
+{
+    if(TimerListHead == NULL)
+    {
+        return;
+    }
+
+    sTimerEventNode_t *prev = TimerListHead;
+    sTimerEventNode_t *cur = TimerListHead;
+  
+    if(TimerListHead->timerEvent == obj)
+    {
+        TimerListHead = TimerListHead->next;
+    }
+    else
+    {
+      while(cur != NULL)
+      {
+        if(cur->timerEvent == obj)
+        {
+          prev->next = cur->next;
+          return;
+        }
+        else
+        {
+          prev = cur;
+          cur = cur->next;
+        }
+      }
+    }
 }
 
 /*********************************************************************** 
@@ -160,52 +253,11 @@ void Timer_PrintAllInstance(void)
 }
 
 
-/*********************************************************************** 
- * @brief      Add timer event to the linked list
- * @param[in]  obj - sTimerEvent_t object pointer
- * @return     None
- ***********************************************************************/
-static void inserTimerEvent(sTimerEvent_t *obj)
-{
-  if(TimerListHead == NULL)
-  {
-    TimerListHead = obj; 
-  }
-  else
-  {
-    // Find the next available space to store
-    sTimerEvent_t* cur = TimerListHead;
-    
-    while (cur->Next != NULL )
-    {
-       cur = cur->Next;
-    }
-    cur->Next = obj;
-    obj->Next = NULL;
-  }
-}
 
-/*********************************************************************** 
- * @brief      Check if a timer instance is already exist in the 
- *             linked list
- * @param[in]  obj - sTimerEvent_t object pointer
- * @return     None
- ***********************************************************************/
-static bool timer_exists(sTimerEvent_t *obj)
-{
-  sTimerEvent_t* cur = TimerListHead;
 
-  while(cur != NULL)
-  {
-    if( cur == obj )
-    {
-      return true;
-    }
-    cur = cur->Next;
-  }
 
-  return false;
-}
+
+
 
 
 /*****END OF FILE****/

@@ -86,13 +86,23 @@ void TimerEvent::start(void)
     // no need to include again
     if(timerEventExists(this) == true)
     {
-        return;
+        if(IsRunning == true)
+        {
+          return;
+        }
+        
+        ElapsedTime_ms = Interval_ms;
+        previousMillis = millis();
+        IsRunning = true;
     }
+    else
     {
+      ElapsedTime_ms = Interval_ms;
+      previousMillis = millis();
+      insertTimerEvent(this);
+      IsRunning = true;
+      Serial.println("Start Done!");
     }
-    ElapsedTime_ms = Interval_ms;
-    IsRunning = true;
-    insertTimerEvent(this);
 }
 
 

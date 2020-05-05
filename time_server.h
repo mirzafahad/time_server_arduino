@@ -42,7 +42,7 @@ typedef void (*Callback)(void);
 class TimerEvent
 {
   private:
-    uint32_t Previous_ms; // Last Mills value to compare with mills()
+    uint32_t ElapsedTime_ms; // How much of Interval_ms is passed?
     uint32_t Interval_ms;    // Interval before executing callback()
     
 
@@ -61,7 +61,6 @@ class TimerEvent
      */
     TimerEvent(uint32_t interval_ms, Callback cb, boolean repeat = false);
     TimerEvent(void);
-    ~TimerEvent();
 
     /*
      * Set callback function to call during timer event
@@ -99,5 +98,5 @@ class TimerEvent
      * Return:   none
      */
     void restart(void);
-}
+};
 #endif // TIME_SERVER_H_

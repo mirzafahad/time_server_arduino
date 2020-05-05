@@ -12,7 +12,7 @@
 
 
 /*** Private Variables *************************************************/
-static sTimerEvent_t *TimerListHead = NULL;
+static TimerEventNode *TimerListHead = NULL;
 
 
 /*** Private Functions Declarations ************************************/
@@ -29,100 +29,64 @@ static bool timer_exists(sTimerEvent_t *obj);
  * @param[in]  callback - Timer event's callback function pointer
  * @return     None
  ***********************************************************************/
-void Timer_Init(sTimerEvent_t *obj, void (*callback)(void))
+TimerEvent::TimerEvent(uint32_t interval_ms, Callback cb, boolean repeat = false)
 {
-  obj->previousMillis = 0;
-  obj->Interval       = 0;
-  obj->IsRunning      = false;
-  obj->Repeatable     = true;
-  obj->Callback       = callback;
-  obj->Next           = NULL;
+  ElapsedTime_ms = 0; 
+  Interval_ms = interval_ms;
+  IsRunning = false;
+  Repeat = repeat; 
+  Cb = cb;
 }
 
-/*********************************************************************** 
- * @brief      Set interval and start a timer event
- * @param[in]  obj - TimerEvent_t object pointer
- * @param[in]  interval_ms - in milliseconds
- * @return     None
- ***********************************************************************/
-void Timer_Start(sTimerEvent_t *obj, uint32_t interval_ms)
+TimerEvent::TimerEvent(void)
 {
-    if( (obj == NULL) || (timer_exists(obj) == true) )
+  ElapsedTime_ms = 0; 
+  Interval_ms = 0;
+  IsRunning = false;
+  Repeat = false; 
+  Cb = NULL;
+}
+
+TimerEvent::setCallback(Callback cb)
+{
+  Cb = cb;
+}
+
+TimerEvent::setInterval(uint32_t interval_ms)
+{
+  Interval_ms = interval_ms;
+}
+
+
+TimerEvent::start(uint32_t interval_ms)
+{
+  Interval_ms = interval_ms;
+  start();
+}
+
+
+TimerEvent::start(void)
+{
+    if(timer_exists(this) == true)
     {
         return;
     }
-    obj->Interval = interval_ms;
-    Timer_Start(obj);
-}
 
-/*********************************************************************** 
- * @brief     Start a timer event
- * @param[in] obj - TimerEvent_t object pointer
- * @return    None
- ***********************************************************************/
-void Timer_Start(sTimerEvent_t *obj)
-{
-    if( (obj == NULL) || (timer_exists(obj) == true) )
+    if(Interval_ms == 0)
     {
-        return;
-    }
-    obj->previousMillis = millis();
-    obj->IsRunning = true;
-    inserTimerEvent(obj);
-}
-
-/*********************************************************************** 
- * @brief      Set timer event's interval
- * @param[in]  obj - TimerEvent_t object pointer
- * @param[in]  interval_ms - interval in milliseconds
- * @return     None
- ***********************************************************************/
-void Timer_SetTime(sTimerEvent_t *obj, uint32_t interval_ms)
-{
-    if(obj == NULL)
-    {
-        return;
-    }
-    obj->Interval = interval_ms;
-}
-
-/*********************************************************************** 
- * @brief      Stop the timer event and remove from the linked list
- * @param[in]  obj - TimerEvent_t object pointer
- * @return     None
- ***********************************************************************/
-void Timer_Stop(sTimerEvent_t *obj)
-{
-  if(obj == NULL)
-  {
       return;
-  }
-  obj->IsRunning = false;
-  obj->previousMillis = 0;
-  
-  sTimerEvent_t* prev = TimerListHead;
-  sTimerEvent_t* cur = TimerListHead;
-
-  if(TimerListHead == obj)
-  {
-    TimerListHead = TimerListHead->Next;
-  }
-  else
-  {
-    while(cur != NULL)
-    {
-      if(cur == obj)
-      {
-        prev->Next = cur->Next;
-        return;
-      }
-      else
-      {
-        prev = cur;
-        cur = cur->Next;
-      }
     }
-  }
+    ElapsedTime_ms = Interval_ms;
+    IsRunning = true;
+    inserTimerEvent(this);
+}
+
+
+TimerEvent::Stop(void)
+{
+  IsRunning = false;
+  ElapsedTime_ms = 0;
+  remove_timerEvent(this);
 }
 
 /*********************************************************************** 

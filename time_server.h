@@ -14,11 +14,6 @@
 // Timer Event struct
 typedef struct sTimerEvent
 {
-  unsigned long previousMillis; //<! Last Mills value to compare with mills()
-  long Interval;                //<! Interval before execute callback()
-  bool IsRunning;               //<! Is the timer currently running?
-  bool Repeatable;
-  void (*Callback)(void);       //<! Timer IRQ callback function
   struct sTimerEvent *Next;     //<! Pointer to the next Timer object.
 }sTimerEvent_t;
 
@@ -56,10 +51,10 @@ class TimerEvent
 {
   private:
     uint32_t Previous_ms; // Last Mills value to compare with mills()
-    uint32_t Interval_ms;    // Interval before execute callback()
+    uint32_t Interval_ms;    // Interval before executing callback()
     boolean  IsRunning;      // Is the timer currently running?
     boolean  Repeat;         // Is this event needs to be repeated
-    Callback Cb;             // Timer IRQ callback function
+    Callback Cb;             // Timer event callback function
 
   public:
     /* 
@@ -73,6 +68,11 @@ class TimerEvent
     TimerEvent(void);
     ~TimerEvent();
 
+    /*
+     * Set callback function to call during timer event
+     * Param :   interval_ms - interval in milliseconds
+     * Return:   none
+     */
     void setCallback(Callback cb);
     
     /*

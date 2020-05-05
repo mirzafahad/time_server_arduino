@@ -182,28 +182,49 @@ static void insertTimerEvent(TimerEvent *obj)
  ***********************************************************************/
 void Timer_Handler(void)
 {
-  unsigned long currentMillis = millis();
+  sTimerEventNode_t *cur = TimerListHead;
+  uint32_t currentMillis = millis();
 
-  sTimerEvent_t* cur = TimerListHead;
+
+  // Check which Nodes' time is expired
   while(cur != NULL)
   {
-    // This also handles the uint32_t wrap around
-    if((unsigned long)(currentMillis - cur->previousMillis) >= cur->Interval)
+    if(cur->timerEvent->IsRunning)
     {
-        // Remove the instance from the linkedList
-        Timer_Stop(cur);
-        if(cur->Callback != NULL)
-        {
-          cur->Callback();
-        }
-
-        if(cur->Repeatable)
-        {
-          Timer_Start(cur);
-        }
+      // This also handles the uint32_t wrap around
+      if((unsigned long)(currentMillis - cur->timerEvent->previousMillis) >= 250)
+      {
+          cur->timerEvent->previousMillis = 0;
+      }
     }
-    cur = cur->Next;
+    cur = cur->next;
   }
+
+  // Now take out the expired Nodes and execute their callbacks
+  cur = TimerListHead;
+  while(cur != NULL)
+  {
+    if(cur->timerEvent->IsRunning && cur->timerEvent->previousMillis == 0)
+    {
+
+      // Execute the callback
+      if(cur->timerEvent->Cb != NULL)
+      {
+        cur->timerEvent->Cb();
+      }
+
+      if(cur->timerEvent->Repeat)
+      {
+        cur->timerEvent->previousMillis = millis();
+      }
+      else
+      {
+        // Remove the instance from the linkedList
+        cur->timerEvent->stop();
+      }
+    }
+    cur = cur->next;
+  }        
 }
 
 /*********************************************************************** 

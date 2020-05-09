@@ -78,16 +78,13 @@ void TimerEvent::start(void)
         }
         
         ElapsedTime_ms = Interval_ms;
-        previousMillis = millis();
         IsRunning = true;
     }
     else
     {
       ElapsedTime_ms = Interval_ms;
-      previousMillis = millis();
       insertTimerEvent(this);
       IsRunning = true;
-      Serial.println("Start Done!");
     }
 }
 
@@ -225,10 +222,8 @@ static void disableTimerISR(void)
 void Timer_Handler(void)
 {
   sTimerEventNode_t *cur = TimerListHead;
-  uint32_t currentMillis = millis();
 
-
-  // Check which Nodes' time is expired
+  // Check which Node's time is expired
   while(cur != NULL)
   {
     if(cur->timerEvent->IsRunning)

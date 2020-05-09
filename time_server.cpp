@@ -242,7 +242,7 @@ static void disableTimerISR(void)
  * @param    None
  * @return   None
  ***********************************************************************/
-void Timer_Handler(void)
+ISR(TIMER1_COMPA_vect)
 {
   sTimerEventNode_t *cur = TimerListHead;
 
@@ -251,11 +251,8 @@ void Timer_Handler(void)
   {
     if(cur->timerEvent->IsRunning)
     {
-      // This also handles the uint32_t wrap around
-      if((unsigned long)(currentMillis - cur->timerEvent->previousMillis) >= 250)
-      {
-          cur->timerEvent->previousMillis = 0;
-      }
+      // Decrement 1ms
+      cur->timerEvent->ElapsedTime_ms--;
     }
     cur = cur->next;
   }
@@ -264,9 +261,8 @@ void Timer_Handler(void)
   cur = TimerListHead;
   while(cur != NULL)
   {
-    if(cur->timerEvent->IsRunning && cur->timerEvent->previousMillis == 0)
+    if(cur->timerEvent->ElapsedTime_ms == 0)
     {
-
       // Execute the callback
       if(cur->timerEvent->Cb != NULL)
       {
@@ -275,7 +271,7 @@ void Timer_Handler(void)
 
       if(cur->timerEvent->Repeat)
       {
-        cur->timerEvent->previousMillis = millis();
+        cur->timerEvent->ElapsedTime_ms = cur->timerEvent->Interval_ms;
       }
       else
       {

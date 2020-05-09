@@ -6,7 +6,6 @@
  ***********************************************************************/
 
 /*** Includes **********************************************************/
-#include <stddef.h>
 #include <Arduino.h>
 #include "time_server.h"
 
@@ -38,7 +37,7 @@ static void removeTimerEvent(TimerEvent *obj);
  * @param[in]  callback - Timer event's callback function pointer
  * @return     None
  ***********************************************************************/
-TimerEvent::TimerEvent(uint32_t interval_ms, Callback cb, boolean repeat = false)
+TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
 {
   ElapsedTime_ms = 0; 
   Interval_ms = interval_ms;
@@ -47,19 +46,6 @@ TimerEvent::TimerEvent(uint32_t interval_ms, Callback cb, boolean repeat = false
   Cb = cb;
 }
 
-TimerEvent::TimerEvent(void)
-{
-  ElapsedTime_ms = 0; 
-  Interval_ms = 0;
-  IsRunning = false;
-  Repeat = false; 
-  Cb = NULL;
-}
-
-void TimerEvent::setCallback(Callback cb)
-{
-  Cb = cb;
-}
 
 void TimerEvent::setInterval(uint32_t interval_ms)
 {

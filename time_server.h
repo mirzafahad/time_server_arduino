@@ -55,15 +55,7 @@ class TimerEvent
      *           repeat   - Should the event repeat after executing callback
      * Return:   none
      */
-    TimerEvent(uint32_t interval_ms, Callback cb, boolean repeat = false);
-    TimerEvent(void);
-
-    /*
-     * Set callback function to call during timer event
-     * Param :   interval_ms - interval in milliseconds
-     * Return:   none
-     */
-    void setCallback(Callback cb);
+    TimerEvent(Callback cb, uint32_t interval_ms = 0, boolean repeat = false);
     
     /*
      * Set timer event's interval

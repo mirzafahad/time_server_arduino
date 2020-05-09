@@ -41,17 +41,13 @@ typedef void (*Callback)(void);
 /**************************************************************************/
 class TimerEvent
 {
-  private:
+  public:
     uint32_t ElapsedTime_ms; // How much of Interval_ms is passed?
     uint32_t Interval_ms;    // Interval before executing callback()
-    
-
-  public:
     boolean  IsRunning;      // Is the timer currently running?
     boolean  Repeat;         // Is this event needs to be repeated
     Callback Cb;             // Timer event callback function
-
-  public:
+    
     /* 
      * Timer event initialization.
      * Param :   interval - Time interval for callback,

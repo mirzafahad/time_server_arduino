@@ -68,12 +68,12 @@ void TimerEvent::start(void)
       return;
     }
     
-    // If the event is already in the linked list,
-    // no need to include again
+    // Check if the event is already in the LinkedList
     if(timerEventExists(this) == true)
     {
         if(IsRunning == true)
         {
+          // It is already running, don't include
           return;
         }
         
@@ -158,6 +158,62 @@ static void insertTimerEvent(TimerEvent *obj)
 
     cur->next = new sTimerEventNode_t{obj, NULL};
   }
+}
+
+
+static void initTimerISR(void)
+{
+  /*
+   * Waveform Generation Mode: Mode 4->CTC
+   *      In this mode once timer reaches OCR1A value
+   *      it will go back to zero, and start counting again.
+   *      
+   * Prescaler: 1
+   *      The clock will receive the system clocl i.e. 16MHz
+   *      
+   * Output Compare Register: 16000
+   *      To generate 1ms interrupt
+   *      
+   * Interrupt Mask: Enable OCIE1A interrupt
+   *      Generate interrupt when timer reaches OCR1A
+   */
+
+  if(TimerInitialized == false)
+  {   
+  
+    // Setting WGM's last two bits to zero
+    TCCR1A = 0;
+  
+    // Setting WGM's other two bits
+    TCCR1B &= ~(1 << WGM13);
+    TCCR1B |= (1 << WGM12);
+  
+    // Selecting prescaler 1
+    TCCR1B |= (1 << CS10);
+    TCCR1B &= ~(1 << CS11);
+    TCCR1B &= ~(1 << CS12); 
+
+    // Clear counter register
+    TCNT1 = 0;
+  
+    // Set OCR1A to generate 1ms 
+    OCR1A = 16000;
+
+    // Enable the interrupt
+    TIMSK1 = (1 << OCIE1A);
+
+    // Enable global interrupt
+    sei();
+
+    // Set flag to avoid re-initialization
+    TimerInitialized = true;
+  }
+}
+
+static void disableTimerISR(void)
+{
+  // Disable the interrupt
+  TIMSK1 &= ~(1 << OCIE1A);
 }
 
 /*********************************************************************** 

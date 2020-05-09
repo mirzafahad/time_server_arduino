@@ -19,6 +19,8 @@ typedef struct sTimerEventNode
 
 /*** Private Variables *************************************************/
 static sTimerEventNode_t *TimerListHead = NULL;
+static uint8_t NumberOfEventsRunning = 0;
+static bool TimerInitialized = false;
 
 
 /*** Private Functions Declarations ************************************/
@@ -79,20 +81,40 @@ void TimerEvent::start(void)
         
         ElapsedTime_ms = Interval_ms;
         IsRunning = true;
+        NumberOfEventsRunning++;
     }
     else
     {
       ElapsedTime_ms = Interval_ms;
       insertTimerEvent(this);
       IsRunning = true;
+      NumberOfEventsRunning++;
+    }
+
+    if(NumberOfEventsRunning > 0)
+    {
+      initTimerISR();
     }
 }
 
 
 void TimerEvent::stop(void)
 {
+  if(IsRunning == true)
+  {
+    if(NumberOfEventsRunning > 0)
+    {
+      NumberOfEventsRunning--;
+    }
+  }
+  
   IsRunning = false;
   ElapsedTime_ms = 0;
+
+  if(NumberOfEventsRunning == 0)
+  {
+    disableTimerISR();
+  }
 }
 
 /*********************************************************************** 
@@ -211,6 +233,7 @@ static void disableTimerISR(void)
 {
   // Disable the interrupt
   TIMSK1 &= ~(1 << OCIE1A);
+  TimerInitialized = false;
 }
 
 /*********************************************************************** 

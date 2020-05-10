@@ -35,7 +35,7 @@ class TimerEvent
      *           repeat   - Should the event repeat after executing callback
      * Return:   none
      ***********************************************************************/
-    TimerEvent(Callback cb, uint32_t interval_ms = 0, boolean repeat = false);
+    explicit TimerEvent(Callback cb, uint32_t interval_ms = 0, boolean repeat = false);
     
     /***********************************************************************
      * Set timer event's interval

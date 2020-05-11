@@ -11,7 +11,7 @@
 /*** Includes **********************************************************/
 #include <Arduino.h>
 
-// Function pointer typedef. To use inside TimerEvent class
+// Callback Function pointer typedef. To use inside TimerEvent class
 typedef void (*Callback)(void);
 
 
@@ -22,11 +22,11 @@ typedef void (*Callback)(void);
 class TimerEvent
 {
   public:
-    uint32_t ElapsedTime_ms; // How much of Interval_ms is passed?
-    uint32_t Interval_ms;    // Interval before executing callback()
-    boolean  IsRunning;      // Is the timer currently running?
-    boolean  Repeat;         // Is this event needs to be repeated
-    Callback Cb;             // Timer event callback function
+    uint32_t elapsed_time_ms_; // How much of interval_ms_ is passed?
+    uint32_t interval_ms_;     // Interval before executing callback()
+    boolean  is_running_;      // Is the timer currently running?
+    boolean  repeat_;          // Is this event needs to be repeated
+    Callback Cb;               // Timer event callback function
     
     /***********************************************************************
      * Timer event initialization.

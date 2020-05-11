@@ -41,23 +41,23 @@ static void removeTimerEvent(TimerEvent *obj);
  ***********************************************************************/
 TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
 {
-  ElapsedTime_ms = 0; 
-  Interval_ms = interval_ms;
-  IsRunning = false;
-  Repeat = repeat; 
+  elapsed_time_ms_ = 0; 
+  interval_ms_ = interval_ms;
+  is_running_ = false;
+  repeat_ = repeat; 
   Cb = cb;
 }
 
 
 void TimerEvent::setInterval(uint32_t interval_ms)
 {
-  Interval_ms = interval_ms;
+  interval_ms_ = interval_ms;
 }
 
 
 void TimerEvent::start(uint32_t interval_ms)
 {
-  Interval_ms = interval_ms;
+  interval_ms_ = interval_ms;
   start();
 }
 
@@ -65,7 +65,7 @@ void TimerEvent::start(uint32_t interval_ms)
 void TimerEvent::start(void)
 {
     // If no time is provided, dont include it
-    if(Interval_ms == 0)
+    if(interval_ms_ == 0)
     {
       return;
     }
@@ -73,21 +73,21 @@ void TimerEvent::start(void)
     // Check if the event is already in the LinkedList
     if(timerEventExists(this) == true)
     {
-        if(IsRunning == true)
+        if(is_running_ == true)
         {
           // It is already running, don't include
           return;
         }
         
-        ElapsedTime_ms = Interval_ms;
-        IsRunning = true;
+        elapsed_time_ms_ = interval_ms_;
+        is_running_ = true;
         NumberOfEventsRunning++;
     }
     else
     {
-      ElapsedTime_ms = Interval_ms;
+      elapsed_time_ms_ = interval_ms_;
       insertTimerEvent(this);
-      IsRunning = true;
+      is_running_ = true;
       NumberOfEventsRunning++;
     }
 
@@ -100,7 +100,7 @@ void TimerEvent::start(void)
 
 void TimerEvent::stop(void)
 {
-  if(IsRunning == true)
+  if(is_running_ == true)
   {
     if(NumberOfEventsRunning > 0)
     {
@@ -108,8 +108,8 @@ void TimerEvent::stop(void)
     }
   }
   
-  IsRunning = false;
-  ElapsedTime_ms = 0;
+  is_running_ = false;
+  elapsed_time_ms_ = 0;
 
   if(NumberOfEventsRunning == 0)
   {
@@ -249,10 +249,10 @@ ISR(TIMER1_COMPA_vect)
   // Check which Node's time is expired
   while(cur != nullptr)
   {
-    if(cur->timerEvent->IsRunning)
+    if(cur->timerEvent->is_running_)
     {
       // Decrement 1ms
-      cur->timerEvent->ElapsedTime_ms--;
+      cur->timerEvent->elapsed_time_ms_--;
     }
     cur = cur->next;
   }
@@ -261,7 +261,7 @@ ISR(TIMER1_COMPA_vect)
   cur = TimerListHead;
   while(cur != nullptr)
   {
-    if(cur->timerEvent->ElapsedTime_ms == 0)
+    if(cur->timerEvent->elapsed_time_ms_ == 0)
     {
       // Execute the callback
       if(cur->timerEvent->Cb != nullptr)
@@ -269,9 +269,9 @@ ISR(TIMER1_COMPA_vect)
         cur->timerEvent->Cb();
       }
 
-      if(cur->timerEvent->Repeat)
+      if(cur->timerEvent->repeat_)
       {
-        cur->timerEvent->ElapsedTime_ms = cur->timerEvent->Interval_ms;
+        cur->timerEvent->elapsed_time_ms_ = cur->timerEvent->interval_ms_;
       }
       else
       {

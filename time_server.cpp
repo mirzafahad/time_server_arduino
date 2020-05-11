@@ -10,17 +10,25 @@
 #include "time_server.h"
 
 
+// TimerEvents will tracked by a linked list
+// I didn't want the linked list to be a part of the TimerEvent class
 typedef struct sTimerEventNode
 {
-  TimerEvent *timerEvent;
+  TimerEvent *timer_event;
   struct sTimerEventNode *next;
 }sTimerEventNode_t;
 
 
 /*** Private Variables *************************************************/
-static sTimerEventNode_t *TimerListHead = nullptr;
-static uint8_t NumberOfEventsRunning = 0;
-static bool TimerInitialized = false;
+// LinkedList head
+static sTimerEventNode_t *g_timer_list_head = nullptr;
+
+// Keep track of how many events are running. If it
+// is down to zero, disable the timer interrupt.
+static uint8_t g_events_running = 0;
+
+// A flag to keep track if the timer interrupt is already initialized
+static bool g_timer_initialized = false;
 
 
 /*** Private Functions Declarations ************************************/
@@ -31,14 +39,7 @@ static bool timerEventExists(TimerEvent *obj);
 static void removeTimerEvent(TimerEvent *obj);
 
 /*** Functions Definitions *********************************************/
-/*********************************************************************** 
- * @brief      Timer event initialization
- * @details    Initializes all the TimerEven_t variables with default
- *             value
- * @param[in]  obj - Timer event object pointer
- * @param[in]  callback - Timer event's callback function pointer
- * @return     None
- ***********************************************************************/
+
 TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
 {
   elapsed_time_ms_ = 0; 
@@ -62,6 +63,26 @@ void TimerEvent::Start(uint32_t interval_ms)
 }
 
 
+/*
+ * For a new TimerEvent Object, Start() will dynamically allocate
+ * some space to keep the object in the linked list. After the event
+ * happens, the event will be stopped by setting is_running_ flag to
+ * false and won't release the memory space. 
+ * 
+ * This is an implementation detail. In my experience, most of the
+ * the event will be repeated. And in other cases the events will be
+ * called once in a while e.g. after you send some character through 
+ * uart start a timer-event for timeout to see if you received a 
+ * response. 
+ * 
+ * In all those cases the timer-event will live forever through out the
+ * application. So it didn't make sense to release the dynamically 
+ * allocated spaces after the event is executed. That will defragment
+ * the heap space.
+ * 
+ * So make sure any timer-event that is created doesn't get destroyed 
+ * during the lifetime of the device.
+ */
 void TimerEvent::Start(void)
 {
     // If no time is provided, dont include it
@@ -70,7 +91,7 @@ void TimerEvent::Start(void)
       return;
     }
     
-    // Check if the event is already in the LinkedList
+    // Is it already in the LinkedList
     if(timerEventExists(this) == true)
     {
         if(is_running_ == true)
@@ -86,9 +107,10 @@ void TimerEvent::Start(void)
 
     elapsed_time_ms_ = interval_ms_;
     is_running_ = true;
-    NumberOfEventsRunning++;
+    g_events_running++;
 
-    initTimerISR(); // If it is already initialized, init() won't init again.
+    // Note: If it is already initialized, init() won't init timer again.
+    initTimerISR(); 
 }
 
 
@@ -96,28 +118,22 @@ void TimerEvent::Stop(void)
 {
   if(is_running_ == true)
   {
-    if(NumberOfEventsRunning > 0)
+    if(g_events_running > 0)
     {
-      NumberOfEventsRunning--;
+      g_events_running--;
     }
   }
   
   is_running_ = false;
   elapsed_time_ms_ = 0;
 
-  if(NumberOfEventsRunning == 0)
+  if(g_events_running == 0)
   {
     disableTimerISR();
   }
 }
 
-/*********************************************************************** 
- * @brief      Restart a timer event
- * @details    Restart a timer event by stopping the timer event and 
- *             then starting it again
- * @param[in]  none
- * @return     none
- ***********************************************************************/
+
 void TimerEvent::Restart(void)
 {
     Stop();
@@ -127,18 +143,18 @@ void TimerEvent::Restart(void)
 /************************ static functions common to all instances ************************/
 
 /*********************************************************************** 
- * @brief      Check if a TimerEvent instance is already exist  
- *             in the linked list
- * @param[in]  obj - sTimerEvent_t object pointer
- * @return     None
+ * @brief   Check if a TimerEvent instance is already exist  
+ *          in the linked list
+ * @param   obj - sTimerEvent_t object pointer
+ * @return  true or false
  ***********************************************************************/
 static bool timerEventExists(TimerEvent *obj)
 {
-  sTimerEventNode_t *cur = TimerListHead;
+  sTimerEventNode_t *cur = g_timer_list_head;
 
   while(cur != nullptr)
   {
-    if(cur->timerEvent == obj)
+    if(cur->timer_event == obj)
     {
       return true;
     }
@@ -148,21 +164,22 @@ static bool timerEventExists(TimerEvent *obj)
   return false;
 }
 
+
 /*********************************************************************** 
- * @brief      Add timer event to the linked list
- * @param[in]  obj - sTimerEvent_t object pointer
- * @return     None
+ * @brief   Add timer event to the linked list
+ * @param   obj - sTimerEvent_t object pointer
+ * @return  none
  ***********************************************************************/
 static void insertTimerEvent(TimerEvent *obj)
 {
-  if(TimerListHead == nullptr)
+  if(g_timer_list_head == nullptr)
   {
-    TimerListHead = new sTimerEventNode_t{obj, nullptr};
+    g_timer_list_head = new sTimerEventNode_t{obj, nullptr};
   }
   else
   {
     // Find the next available space to store
-    sTimerEventNode_t *cur = TimerListHead;
+    sTimerEventNode_t *cur = g_timer_list_head;
     
     while (cur->next != nullptr)
     {
@@ -174,6 +191,11 @@ static void insertTimerEvent(TimerEvent *obj)
 }
 
 
+/*********************************************************************** 
+ * @brief   Initialize timer1 interrupt
+ * @param   none
+ * @return  none
+ ***********************************************************************/
 static void initTimerISR(void)
 {
   /*
@@ -191,7 +213,7 @@ static void initTimerISR(void)
    *      Generate interrupt when timer reaches OCR1A
    */
 
-  if(TimerInitialized == false)
+  if(g_timer_initialized == false)
   {   
   
     // Setting WGM's last two bits to zero
@@ -219,58 +241,62 @@ static void initTimerISR(void)
     sei();
 
     // Set flag to avoid re-initialization
-    TimerInitialized = true;
+    g_timer_initialized = true;
   }
 }
 
+
+/*********************************************************************** 
+ * @brief   Disable timer 1 interrupt
+ * @param   none
+ * @return  none
+ ***********************************************************************/
 static void disableTimerISR(void)
 {
-  // Disable the interrupt
   TIMSK1 &= ~(1 << OCIE1A);
-  TimerInitialized = false;
+  g_timer_initialized = false;
 }
 
 /*********************************************************************** 
- * @brief    Handles the time for all timer event
- * @details  Call this fucnction in loop()
- * @param    None
- * @return   None
+ * @brief   Timer 1 interrupt ISR
+ * @param   none
+ * @return  none
  ***********************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
-  sTimerEventNode_t *cur = TimerListHead;
+  sTimerEventNode_t *cur = g_timer_list_head;
 
-  // Check which Node's time is expired
+  // Decrease 1ms from the elapsed_time of the running events
   while(cur != nullptr)
   {
-    if(cur->timerEvent->is_running_)
+    if(cur->timer_event->is_running_)
     {
       // Decrement 1ms
-      cur->timerEvent->elapsed_time_ms_--;
+      cur->timer_event->elapsed_time_ms_--;
     }
     cur = cur->next;
   }
 
   // Now take out the expired Nodes and execute their callbacks
-  cur = TimerListHead;
+  cur = g_timer_list_head;
   while(cur != nullptr)
   {
-    if(cur->timerEvent->elapsed_time_ms_ == 0)
+    if(cur->timer_event->elapsed_time_ms_ == 0)
     {
       // Execute the callback
-      if(cur->timerEvent->Cb != nullptr)
+      if(cur->timer_event->Cb != nullptr)
       {
-        cur->timerEvent->Cb();
+        cur->timer_event->Cb();
       }
 
-      if(cur->timerEvent->repeat_)
+      if(cur->timer_event->repeat_)
       {
-        cur->timerEvent->elapsed_time_ms_ = cur->timerEvent->interval_ms_;
+        cur->timer_event->elapsed_time_ms_ = cur->timer_event->interval_ms_;
       }
       else
       {
         // Remove the instance from the linkedList
-        cur->timerEvent->Stop();
+        cur->timer_event->Stop();
       }
     }
     cur = cur->next;
@@ -278,11 +304,11 @@ ISR(TIMER1_COMPA_vect)
 }
 
 /*********************************************************************** 
- * @brief    Print timer instance 
- * @details  Debug function to print all timer instances' address in 
- *           the linked list
- * @param    None
- * @return   None
+ * @brief   Print timer instance 
+ *          Debug function to print all timer instances' address in 
+ *          the linked list
+ * @param   none
+ * @return  none
  ***********************************************************************/
 void Timer_PrintAllInstance(void)
 {
@@ -301,13 +327,5 @@ void Timer_PrintAllInstance(void)
   DBG_Println(F("PrintAllInstance: Done"));
   #endif
 }
-
-
-
-
-
-
-
-
 
 /*****END OF FILE****/

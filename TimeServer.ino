@@ -3,13 +3,15 @@
 
 // Callback functions for timer events
 static void onBlinkTimerEvent(void);
-void D8TimerEvent(void);
-void D9TimerEvent(void);
-void D10TimerEvent(void);
+void onD8TimerEvent(void);
+void onD9TimerEvent(void);
+void onD10TimerEvent(void);
+
+// TimerEvent(Callback, interval_ms, repeat)
 static TimerEvent BlinkTimer(onBlinkTimerEvent, 250, true);
-static TimerEvent D8Timer(D8TimerEvent, 250, true);
-static TimerEvent D9Timer(D9TimerEvent, 500, true);
-static TimerEvent D10Timer(D10TimerEvent, 1000, true);
+static TimerEvent D8Timer(onD8TimerEvent, 250, true);
+static TimerEvent D9Timer(onD9TimerEvent, 500, true);
+static TimerEvent D10Timer(onD10TimerEvent, 1000, true);
 
 
 void setup() 
@@ -38,17 +40,17 @@ void onBlinkTimerEvent(void)
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 }
 
-void D8TimerEvent(void)
+void onD8TimerEvent(void)
 {
   digitalWrite(8, !digitalRead(8));
 }
 
-void D9TimerEvent(void)
+void onD9TimerEvent(void)
 {
   digitalWrite(9, !digitalRead(9));
 }
 
-void D10TimerEvent(void)
+void onD10TimerEvent(void)
 {
   digitalWrite(10, !digitalRead(10));
 }

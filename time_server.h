@@ -42,22 +42,22 @@ class TimerEvent
      * Param :   interval_ms - interval in milliseconds
      * Return:   none
      ***********************************************************************/
-    void setInterval(uint32_t interval_ms);
+    void SetInterval(uint32_t interval_ms);
 
     /***********************************************************************
      * Start a particular timer event.
      * Param :   interval_ms - in milliseconds
      * Return:   none
      ***********************************************************************/
-    void start(uint32_t interval_ms);
-    void start(void);
+    void Start(uint32_t interval_ms);
+    void Start(void);
 
     /***********************************************************************
      * Stop the timer event and remove from the linked list.
      * Param :   none
      * Return:   none
      ***********************************************************************/
-    void stop(void);
+    void Stop(void);
 
     /***********************************************************************
      * Restart a timer event by stopping the timer event and 
@@ -65,6 +65,6 @@ class TimerEvent
      * Param :   none
      * Return:   none
      ***********************************************************************/
-    void restart(void);
+    void Restart(void);
 };
 #endif // TIME_SERVER_H_

@@ -21,10 +21,10 @@ void setup()
   pinMode(10, OUTPUT);
   
 
-  BlinkTimer.start();
-  D8Timer.start();
-  D9Timer.start();
-  D10Timer.start();
+  BlinkTimer.Start();
+  D8Timer.Start();
+  D9Timer.Start();
+  D10Timer.Start();
 }
 
 void loop() 

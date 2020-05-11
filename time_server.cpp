@@ -49,20 +49,20 @@ TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
 }
 
 
-void TimerEvent::setInterval(uint32_t interval_ms)
+void TimerEvent::SetInterval(uint32_t interval_ms)
 {
   interval_ms_ = interval_ms;
 }
 
 
-void TimerEvent::start(uint32_t interval_ms)
+void TimerEvent::Start(uint32_t interval_ms)
 {
   interval_ms_ = interval_ms;
-  start();
+  Start();
 }
 
 
-void TimerEvent::start(void)
+void TimerEvent::Start(void)
 {
     // If no time is provided, dont include it
     if(interval_ms_ == 0)
@@ -92,7 +92,7 @@ void TimerEvent::start(void)
 }
 
 
-void TimerEvent::stop(void)
+void TimerEvent::Stop(void)
 {
   if(is_running_ == true)
   {
@@ -118,10 +118,10 @@ void TimerEvent::stop(void)
  * @param[in]  none
  * @return     none
  ***********************************************************************/
-void TimerEvent::restart(void)
+void TimerEvent::Restart(void)
 {
-    stop();
-    start();
+    Stop();
+    Start();
 }
 
 /************************ static functions common to all instances ************************/
@@ -270,7 +270,7 @@ ISR(TIMER1_COMPA_vect)
       else
       {
         // Remove the instance from the linkedList
-        cur->timerEvent->stop();
+        cur->timerEvent->Stop();
       }
     }
     cur = cur->next;

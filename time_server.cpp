@@ -18,7 +18,7 @@ typedef struct sTimerEventNode
 
 
 /*** Private Variables *************************************************/
-static sTimerEventNode_t *TimerListHead = NULL;
+static sTimerEventNode_t *TimerListHead = nullptr;
 static uint8_t NumberOfEventsRunning = 0;
 static bool TimerInitialized = false;
 
@@ -142,7 +142,7 @@ static bool timerEventExists(TimerEvent *obj)
 {
   sTimerEventNode_t *cur = TimerListHead;
 
-  while(cur != NULL)
+  while(cur != nullptr)
   {
     if(cur->timerEvent == obj)
     {
@@ -161,21 +161,21 @@ static bool timerEventExists(TimerEvent *obj)
  ***********************************************************************/
 static void insertTimerEvent(TimerEvent *obj)
 {
-  if(TimerListHead == NULL)
+  if(TimerListHead == nullptr)
   {
-    TimerListHead = new sTimerEventNode_t{obj, NULL};
+    TimerListHead = new sTimerEventNode_t{obj, nullptr};
   }
   else
   {
     // Find the next available space to store
     sTimerEventNode_t *cur = TimerListHead;
     
-    while (cur->next != NULL )
+    while (cur->next != nullptr)
     {
        cur = cur->next;
     }
 
-    cur->next = new sTimerEventNode_t{obj, NULL};
+    cur->next = new sTimerEventNode_t{obj, nullptr};
   }
 }
 
@@ -247,7 +247,7 @@ ISR(TIMER1_COMPA_vect)
   sTimerEventNode_t *cur = TimerListHead;
 
   // Check which Node's time is expired
-  while(cur != NULL)
+  while(cur != nullptr)
   {
     if(cur->timerEvent->IsRunning)
     {
@@ -259,12 +259,12 @@ ISR(TIMER1_COMPA_vect)
 
   // Now take out the expired Nodes and execute their callbacks
   cur = TimerListHead;
-  while(cur != NULL)
+  while(cur != nullptr)
   {
     if(cur->timerEvent->ElapsedTime_ms == 0)
     {
       // Execute the callback
-      if(cur->timerEvent->Cb != NULL)
+      if(cur->timerEvent->Cb != nullptr)
       {
         cur->timerEvent->Cb();
       }

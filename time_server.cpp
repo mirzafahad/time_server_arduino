@@ -85,32 +85,32 @@ void TimerEvent::Start(uint32_t interval_ms)
  */
 void TimerEvent::Start(void)
 {
-    // If no time is provided, dont include it
-    if(interval_ms_ == 0)
+  // If no time is provided, dont include it
+  if(interval_ms_ == 0)
+  {
+    return;
+  }
+    
+  // Is it already in the LinkedList
+  if(timerEventExists(this) == true)
+  {
+    if(is_running_ == true)
     {
+      // It is already running, don't include
       return;
     }
-    
-    // Is it already in the LinkedList
-    if(timerEventExists(this) == true)
-    {
-        if(is_running_ == true)
-        {
-          // It is already running, don't include
-          return;
-        }
-    }
-    else
-    {
-      insertTimerEvent(this);
-    }
+  }
+  else
+  {
+    insertTimerEvent(this);
+  }
 
-    elapsed_time_ms_ = interval_ms_;
-    is_running_ = true;
-    g_events_running++;
+  elapsed_time_ms_ = interval_ms_;
+  is_running_ = true;
+  g_events_running++;
 
-    // Note: If it is already initialized, init() won't init timer again.
-    initTimerISR(); 
+  // Note: If it is already initialized, init() won't init timer again.
+  initTimerISR(); 
 }
 
 
@@ -136,8 +136,8 @@ void TimerEvent::Stop(void)
 
 void TimerEvent::Restart(void)
 {
-    Stop();
-    Start();
+  Stop();
+  Start();
 }
 
 /************************ static functions common to all instances ************************/

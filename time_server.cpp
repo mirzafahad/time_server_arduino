@@ -78,23 +78,17 @@ void TimerEvent::start(void)
           // It is already running, don't include
           return;
         }
-        
-        elapsed_time_ms_ = interval_ms_;
-        is_running_ = true;
-        NumberOfEventsRunning++;
     }
     else
     {
-      elapsed_time_ms_ = interval_ms_;
       insertTimerEvent(this);
-      is_running_ = true;
-      NumberOfEventsRunning++;
     }
 
-    if(NumberOfEventsRunning > 0)
-    {
-      initTimerISR();
-    }
+    elapsed_time_ms_ = interval_ms_;
+    is_running_ = true;
+    NumberOfEventsRunning++;
+
+    initTimerISR(); // If it is already initialized, init() won't init again.
 }
 
 

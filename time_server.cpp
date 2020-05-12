@@ -11,18 +11,18 @@
 
 
 /*** Typedefs **********************************************************/
-// TimerEvents will tracked by a linked list
-// Note: I didn't want the linked list to be a part of the TimerEvent class
-typedef struct sTimerEventNode
+// TimerEvents will be tracked by a linked list
+// Create structure for the linked list
+struct sTimerEventNode
 {
   TimerEvent *timer_event;
-  struct sTimerEventNode *next;
-}sTimerEventNode_t;
+  sTimerEventNode *next;
+};
 
 
 /*** Private Variables *************************************************/
 // LinkedList head
-static sTimerEventNode_t *gTimerListHead = nullptr;
+static sTimerEventNode *gTimerListHead = nullptr;
 
 // Keep track of how many events are running. If it
 // is down to zero, disable the timer interrupt.
@@ -151,7 +151,7 @@ void TimerEvent::Restart(void)
  ***********************************************************************/
 static bool timerEventExists(TimerEvent *obj)
 {
-  sTimerEventNode_t *cur = gTimerListHead;
+  sTimerEventNode *cur = gTimerListHead;
 
   while(cur != nullptr)
   {
@@ -175,19 +175,19 @@ static void insertTimerEvent(TimerEvent *obj)
 {
   if(gTimerListHead == nullptr)
   {
-    gTimerListHead = new sTimerEventNode_t{obj, nullptr};
+    gTimerListHead = new sTimerEventNode{obj, nullptr};
   }
   else
   {
     // Find the next available space to store
-    sTimerEventNode_t *cur = gTimerListHead;
+    sTimerEventNode *cur = gTimerListHead;
     
     while (cur->next != nullptr)
     {
        cur = cur->next;
     }
 
-    cur->next = new sTimerEventNode_t{obj, nullptr};
+    cur->next = new sTimerEventNode{obj, nullptr};
   }
 }
 
@@ -265,7 +265,7 @@ static void disableTimerISR(void)
  ***********************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
-  sTimerEventNode_t *cur = gTimerListHead;
+  sTimerEventNode *cur = gTimerListHead;
 
   // Decrease 1ms from the elapsed_time of the running events
   while(cur != nullptr)
@@ -314,15 +314,15 @@ ISR(TIMER1_COMPA_vect)
 void Timer_PrintAllInstance(void)
 {
   #if DEBUG
-  sTimerEvent_t* cur = TimerListHead;
+  sTimerEventNode *cur = gTimerListHead;
   DBG_Println("PrintAllInstance:");
   
-  while(cur != NULL)
+  while(cur != nullptr)
   {
-    uint32_t add = (uint32_t)cur;
-    Serial.print(add, HEX);
+    uint32_t address = (uint32_t)cur;
+    Serial.print(address, HEX);
     Serial.println();
-    cur = cur->Next;
+    cur = cur->next;
   }
 
   DBG_Println(F("PrintAllInstance: Done"));

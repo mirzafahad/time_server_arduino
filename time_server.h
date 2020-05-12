@@ -43,7 +43,7 @@ class TimerEvent
     uint32_t elapsed_time_ms_; // How much of interval_ms_ is passed?
     boolean  is_running_;      // Is the event currently running?
     boolean  repeat_;          // Is this event needs to be repeated
-    Callback Cb;               // Callback function pointer
+    Callback cb_;              // Callback function pointer
     
     /***********************************************************************
      * Note: Interval can be set later, if the callback doesn't need to be

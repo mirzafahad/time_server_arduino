@@ -10,8 +10,9 @@
 #include "time_server.h"
 
 
+/*** Typedefs **********************************************************/
 // TimerEvents will tracked by a linked list
-// I didn't want the linked list to be a part of the TimerEvent class
+// Note: I didn't want the linked list to be a part of the TimerEvent class
 typedef struct sTimerEventNode
 {
   TimerEvent *timer_event;
@@ -21,14 +22,14 @@ typedef struct sTimerEventNode
 
 /*** Private Variables *************************************************/
 // LinkedList head
-static sTimerEventNode_t *g_timer_list_head = nullptr;
+static sTimerEventNode_t *gTimerListHead = nullptr;
 
 // Keep track of how many events are running. If it
 // is down to zero, disable the timer interrupt.
-static uint8_t g_events_running = 0;
+static uint8_t gEventsRunning = 0;
 
 // A flag to keep track if the timer interrupt is already initialized
-static bool g_timer_initialized = false;
+static bool gTimerInitialized = false;
 
 
 /*** Private Functions Declarations ************************************/
@@ -46,7 +47,7 @@ TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
   interval_ms_ = interval_ms;
   is_running_ = false;
   repeat_ = repeat; 
-  Cb = cb;
+  cb_ = cb;
 }
 
 
@@ -107,7 +108,7 @@ void TimerEvent::Start(void)
 
   elapsed_time_ms_ = interval_ms_;
   is_running_ = true;
-  g_events_running++;
+  gEventsRunning++;
 
   // Note: If it is already initialized, init() won't init timer again.
   initTimerISR(); 
@@ -118,16 +119,16 @@ void TimerEvent::Stop(void)
 {
   if(is_running_ == true)
   {
-    if(g_events_running > 0)
+    if(gEventsRunning > 0)
     {
-      g_events_running--;
+      gEventsRunning--;
     }
   }
   
   is_running_ = false;
   elapsed_time_ms_ = 0;
 
-  if(g_events_running == 0)
+  if(gEventsRunning == 0)
   {
     disableTimerISR();
   }
@@ -150,7 +151,7 @@ void TimerEvent::Restart(void)
  ***********************************************************************/
 static bool timerEventExists(TimerEvent *obj)
 {
-  sTimerEventNode_t *cur = g_timer_list_head;
+  sTimerEventNode_t *cur = gTimerListHead;
 
   while(cur != nullptr)
   {
@@ -172,14 +173,14 @@ static bool timerEventExists(TimerEvent *obj)
  ***********************************************************************/
 static void insertTimerEvent(TimerEvent *obj)
 {
-  if(g_timer_list_head == nullptr)
+  if(gTimerListHead == nullptr)
   {
-    g_timer_list_head = new sTimerEventNode_t{obj, nullptr};
+    gTimerListHead = new sTimerEventNode_t{obj, nullptr};
   }
   else
   {
     // Find the next available space to store
-    sTimerEventNode_t *cur = g_timer_list_head;
+    sTimerEventNode_t *cur = gTimerListHead;
     
     while (cur->next != nullptr)
     {
@@ -213,7 +214,7 @@ static void initTimerISR(void)
    *      Generate interrupt when timer reaches OCR1A
    */
 
-  if(g_timer_initialized == false)
+  if(gTimerInitialized == false)
   {   
   
     // Setting WGM's last two bits to zero
@@ -241,7 +242,7 @@ static void initTimerISR(void)
     sei();
 
     // Set flag to avoid re-initialization
-    g_timer_initialized = true;
+    gTimerInitialized = true;
   }
 }
 
@@ -254,7 +255,7 @@ static void initTimerISR(void)
 static void disableTimerISR(void)
 {
   TIMSK1 &= ~(1 << OCIE1A);
-  g_timer_initialized = false;
+  gTimerInitialized = false;
 }
 
 /*********************************************************************** 
@@ -264,7 +265,7 @@ static void disableTimerISR(void)
  ***********************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
-  sTimerEventNode_t *cur = g_timer_list_head;
+  sTimerEventNode_t *cur = gTimerListHead;
 
   // Decrease 1ms from the elapsed_time of the running events
   while(cur != nullptr)
@@ -278,15 +279,15 @@ ISR(TIMER1_COMPA_vect)
   }
 
   // Now take out the expired Nodes and execute their callbacks
-  cur = g_timer_list_head;
+  cur = gTimerListHead;
   while(cur != nullptr)
   {
     if(cur->timer_event->elapsed_time_ms_ == 0)
     {
       // Execute the callback
-      if(cur->timer_event->Cb != nullptr)
+      if(cur->timer_event->cb_ != nullptr)
       {
-        cur->timer_event->Cb();
+        cur->timer_event->cb_();
       }
 
       if(cur->timer_event->repeat_)

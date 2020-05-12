@@ -5,13 +5,13 @@
 static void onBlinkTimerEvent(void);
 void onD8TimerEvent(void);
 void onD9TimerEvent(void);
-void onD10TimerEvent(void);
+void onUartTimerEvent(void);
 
 // TimerEvent(Callback, interval_ms, repeat)
 static TimerEvent BlinkTimer(onBlinkTimerEvent, 250, true);
 static TimerEvent D8Timer(onD8TimerEvent, 250, true);
 static TimerEvent D9Timer(onD9TimerEvent, 500, true);
-static TimerEvent D10Timer(onD10TimerEvent, 1000, true);
+static TimerEvent UartTimer(onUartTimerEvent, 1000, true);
 
 
 void setup() 
@@ -26,13 +26,13 @@ void setup()
   BlinkTimer.Start();
   D8Timer.Start();
   D9Timer.Start();
-  D10Timer.Start();
+  UartTimer.Start();
 }
 
 void loop() 
 {
   delay(5000);
-  Serial.println("Hi");
+  Serial.println("Hello");
 }
 
 void onBlinkTimerEvent(void)
@@ -50,7 +50,7 @@ void onD9TimerEvent(void)
   digitalWrite(9, !digitalRead(9));
 }
 
-void onD10TimerEvent(void)
+void onUartTimerEvent(void)
 {
-  digitalWrite(10, !digitalRead(10));
+  Serial.print('A');
 }

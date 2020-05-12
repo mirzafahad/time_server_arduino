@@ -19,25 +19,143 @@ struct sTimerEventNode
   sTimerEventNode *next;
 };
 
+class LinkedList
+{
+  public:
+    sTimerEventNode *head_;
+    
+    // Keep track of how many events are running. If it
+    // is down to zero, disable the timer interrupt.
+    uint8_t no_of_events_running_;
+
+    // A flag to keep track if the timer interrupt is already initialized
+    bool timer_initialized_;
+    
+    LinkedList()
+    {
+      head_ = nullptr;
+      no_of_events_running_ = 0;
+      timer_initialized_ = false;
+    }
+
+    /*********************************************************************** 
+     * @brief   Add timer event to the linked list
+     * @param   obj - sTimerEvent_t object pointer
+     * @return  none
+     ***********************************************************************/
+    void InsertEvent(TimerEvent *obj)
+    {
+      if(head_ == nullptr)
+      {
+        head_ = new sTimerEventNode{obj, nullptr};
+      }
+      else
+      {
+        // Find the next available space to store
+        sTimerEventNode *cur = head_;
+    
+        while (cur->next != nullptr)
+        {
+          cur = cur->next;
+        }
+
+        cur->next = new sTimerEventNode{obj, nullptr};
+      }  
+    }
+
+    /*********************************************************************** 
+     * @brief   Check if a TimerEvent instance is already exist  
+     *          in the linked list
+     * @param   obj - sTimerEvent_t object pointer
+     * @return  true or false
+     ***********************************************************************/
+    bool EventExists(TimerEvent *obj)
+    {
+      sTimerEventNode *cur = head_;
+    
+      while(cur != nullptr)
+      {
+        if(cur->timer_event == obj)
+        {
+          return true;
+        }
+        cur = cur->next;
+      }
+      return false;
+    }
+ 
+    /*********************************************************************** 
+     * @brief   Initialize timer1 interrupt
+     * @param   none
+     * @return  none
+     ***********************************************************************/
+    void InitTimerIsr(void)
+    {
+      /*
+       * Waveform Generation Mode: Mode 4->CTC
+       *      In this mode once timer reaches OCR1A value
+       *      it will go back to zero, and start counting again.
+       *      
+       * Prescaler: 1
+       *      The clock will receive the system clocl i.e. 16MHz
+       *      
+       * Output Compare Register: 16000
+       *      To generate 1ms interrupt
+       *      
+       * Interrupt Mask: Enable OCIE1A interrupt
+       *      Generate interrupt when timer reaches OCR1A
+       */
+    
+      if(timer_initialized_ == false)
+      {   
+      
+        // Setting WGM's last two bits to zero
+        TCCR1A = 0;
+      
+        // Setting WGM's other two bits
+        TCCR1B &= ~(1 << WGM13);
+        TCCR1B |= (1 << WGM12);
+      
+        // Selecting prescaler 1
+        TCCR1B |= (1 << CS10);
+        TCCR1B &= ~(1 << CS11);
+        TCCR1B &= ~(1 << CS12); 
+    
+        // Clear counter register
+        TCNT1 = 0;
+      
+        // Set OCR1A to generate 1ms 
+        OCR1A = 16000;
+    
+        // Enable the interrupt
+        TIMSK1 = (1 << OCIE1A);
+    
+        // Enable global interrupt
+        sei();
+    
+        // Set flag to avoid re-initialization
+        timer_initialized_ = true;
+      }
+    }
+
+    /*********************************************************************** 
+     * @brief   Disable timer 1 interrupt
+     * @param   none
+     * @return  none
+     ***********************************************************************/
+    void DisableTimerIsr(void)
+    {
+      TIMSK1 &= ~(1 << OCIE1A);
+      timer_initialized_ = false;
+    }
+};
+
 
 /*** Private Variables *************************************************/
-// LinkedList head
-static sTimerEventNode *gTimerListHead = nullptr;
-
-// Keep track of how many events are running. If it
-// is down to zero, disable the timer interrupt.
-static uint8_t gEventsRunning = 0;
-
-// A flag to keep track if the timer interrupt is already initialized
-static bool gTimerInitialized = false;
+static LinkedList TimerList;
 
 
-/*** Private Functions Declarations ************************************/
-static void initTimerISR(void);
-static void disableTimerISR(void);
-static void insertTimerEvent(TimerEvent *obj);
-static bool timerEventExists(TimerEvent *obj);
-static void removeTimerEvent(TimerEvent *obj);
+
 
 /*** Functions Definitions *********************************************/
 
@@ -93,7 +211,7 @@ void TimerEvent::Start(void)
   }
     
   // Is it already in the LinkedList
-  if(timerEventExists(this) == true)
+  if(TimerList.EventExists(this) == true)
   {
     if(is_running_ == true)
     {
@@ -103,15 +221,15 @@ void TimerEvent::Start(void)
   }
   else
   {
-    insertTimerEvent(this);
+    TimerList.InsertEvent(this);
   }
 
   elapsed_time_ms_ = interval_ms_;
   is_running_ = true;
-  gEventsRunning++;
+  TimerList.no_of_events_running_++;
 
   // Note: If it is already initialized, init() won't init timer again.
-  initTimerISR(); 
+  TimerList.InitTimerIsr(); 
 }
 
 
@@ -119,18 +237,18 @@ void TimerEvent::Stop(void)
 {
   if(is_running_ == true)
   {
-    if(gEventsRunning > 0)
+    if(TimerList.no_of_events_running_ > 0)
     {
-      gEventsRunning--;
+      TimerList.no_of_events_running_--;
     }
   }
   
   is_running_ = false;
   elapsed_time_ms_ = 0;
 
-  if(gEventsRunning == 0)
+  if(TimerList.no_of_events_running_ == 0)
   {
-    disableTimerISR();
+    TimerList.DisableTimerIsr();
   }
 }
 
@@ -141,122 +259,6 @@ void TimerEvent::Restart(void)
   Start();
 }
 
-/************************ static functions common to all instances ************************/
-
-/*********************************************************************** 
- * @brief   Check if a TimerEvent instance is already exist  
- *          in the linked list
- * @param   obj - sTimerEvent_t object pointer
- * @return  true or false
- ***********************************************************************/
-static bool timerEventExists(TimerEvent *obj)
-{
-  sTimerEventNode *cur = gTimerListHead;
-
-  while(cur != nullptr)
-  {
-    if(cur->timer_event == obj)
-    {
-      return true;
-    }
-    cur = cur->next;
-  }
-
-  return false;
-}
-
-
-/*********************************************************************** 
- * @brief   Add timer event to the linked list
- * @param   obj - sTimerEvent_t object pointer
- * @return  none
- ***********************************************************************/
-static void insertTimerEvent(TimerEvent *obj)
-{
-  if(gTimerListHead == nullptr)
-  {
-    gTimerListHead = new sTimerEventNode{obj, nullptr};
-  }
-  else
-  {
-    // Find the next available space to store
-    sTimerEventNode *cur = gTimerListHead;
-    
-    while (cur->next != nullptr)
-    {
-       cur = cur->next;
-    }
-
-    cur->next = new sTimerEventNode{obj, nullptr};
-  }
-}
-
-
-/*********************************************************************** 
- * @brief   Initialize timer1 interrupt
- * @param   none
- * @return  none
- ***********************************************************************/
-static void initTimerISR(void)
-{
-  /*
-   * Waveform Generation Mode: Mode 4->CTC
-   *      In this mode once timer reaches OCR1A value
-   *      it will go back to zero, and start counting again.
-   *      
-   * Prescaler: 1
-   *      The clock will receive the system clocl i.e. 16MHz
-   *      
-   * Output Compare Register: 16000
-   *      To generate 1ms interrupt
-   *      
-   * Interrupt Mask: Enable OCIE1A interrupt
-   *      Generate interrupt when timer reaches OCR1A
-   */
-
-  if(gTimerInitialized == false)
-  {   
-  
-    // Setting WGM's last two bits to zero
-    TCCR1A = 0;
-  
-    // Setting WGM's other two bits
-    TCCR1B &= ~(1 << WGM13);
-    TCCR1B |= (1 << WGM12);
-  
-    // Selecting prescaler 1
-    TCCR1B |= (1 << CS10);
-    TCCR1B &= ~(1 << CS11);
-    TCCR1B &= ~(1 << CS12); 
-
-    // Clear counter register
-    TCNT1 = 0;
-  
-    // Set OCR1A to generate 1ms 
-    OCR1A = 16000;
-
-    // Enable the interrupt
-    TIMSK1 = (1 << OCIE1A);
-
-    // Enable global interrupt
-    sei();
-
-    // Set flag to avoid re-initialization
-    gTimerInitialized = true;
-  }
-}
-
-
-/*********************************************************************** 
- * @brief   Disable timer 1 interrupt
- * @param   none
- * @return  none
- ***********************************************************************/
-static void disableTimerISR(void)
-{
-  TIMSK1 &= ~(1 << OCIE1A);
-  gTimerInitialized = false;
-}
 
 /*********************************************************************** 
  * @brief   Timer 1 interrupt ISR
@@ -265,7 +267,7 @@ static void disableTimerISR(void)
  ***********************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
-  sTimerEventNode *cur = gTimerListHead;
+  sTimerEventNode *cur = TimerList.head_;
 
   // Decrease 1ms from the elapsed_time of the running events
   while(cur != nullptr)
@@ -279,7 +281,7 @@ ISR(TIMER1_COMPA_vect)
   }
 
   // Now take out the expired Nodes and execute their callbacks
-  cur = gTimerListHead;
+  cur = TimerList.head_;
   while(cur != nullptr)
   {
     if(cur->timer_event->elapsed_time_ms_ == 0)
@@ -314,7 +316,7 @@ ISR(TIMER1_COMPA_vect)
 void Timer_PrintAllInstance(void)
 {
   #if DEBUG
-  sTimerEventNode *cur = gTimerListHead;
+  sTimerEventNode *cur = TimerList.head_;
   DBG_Println("PrintAllInstance:");
   
   while(cur != nullptr)
@@ -328,5 +330,4 @@ void Timer_PrintAllInstance(void)
   DBG_Println(F("PrintAllInstance: Done"));
   #endif
 }
-
 /*****END OF FILE****/

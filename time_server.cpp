@@ -15,8 +15,8 @@
 // Create structure for the linked list
 struct sTimerEventNode
 {
-  TimerEvent      *timer_event;
-  sTimerEventNode *next;
+    TimerEvent      *timer_event;
+    sTimerEventNode *next;
 };
 
 class LinkedList
@@ -33,9 +33,9 @@ class LinkedList
     
     LinkedList()
     {
-      head_ = nullptr;
-      no_of_events_running_ = 0;
-      timer_initialized_ = false;
+        head_ = nullptr;
+        no_of_events_running_ = 0;
+        timer_initialized_ = false;
     }
 
     /*********************************************************************** 
@@ -45,22 +45,22 @@ class LinkedList
      ***********************************************************************/
     void InsertEvent(TimerEvent *obj)
     {
-      if (nullptr == head_)
-      {
-        head_ = new sTimerEventNode{obj, nullptr};
-      }
-      else
-      {
-        // Find the next available space to store
-        sTimerEventNode *cur = head_;
-    
-        while (cur->next != nullptr)
+        if (nullptr == head_)
         {
-          cur = cur->next;
+            head_ = new sTimerEventNode{obj, nullptr};
         }
+        else
+        {
+            // Find the next available space to store
+            sTimerEventNode *cur = head_;
+    
+            while (cur->next != nullptr)
+            {
+                cur = cur->next;
+            }
 
-        cur->next = new sTimerEventNode{obj, nullptr};
-      }  
+            cur->next = new sTimerEventNode{obj, nullptr};
+        }  
     }
 
     /*********************************************************************** 
@@ -71,17 +71,17 @@ class LinkedList
      ***********************************************************************/
     bool EventExists(TimerEvent *obj)
     {
-      sTimerEventNode *cur = head_;
-    
-      while (cur != nullptr)
-      {
-        if (cur->timer_event == obj)
+        sTimerEventNode *cur = head_;
+      
+        while (cur != nullptr)
         {
-          return true;
+            if (cur->timer_event == obj)
+            {
+              return true;
+            }
+            cur = cur->next;
         }
-        cur = cur->next;
-      }
-      return false;
+        return false;
     }
  
     /*********************************************************************** 
@@ -91,50 +91,50 @@ class LinkedList
      ***********************************************************************/
     void InitTimerIsr(void)
     {
-      /*
-       * Waveform Generation Mode: Mode 4->CTC
-       *      In this mode once timer reaches OCR1A value
-       *      it will go back to zero, and start counting again.
-       *      
-       * Prescaler: 1
-       *      The clock will receive the system clocl i.e. 16MHz
-       *      
-       * Output Compare Register: 16000
-       *      To generate 1ms interrupt
-       *      
-       * Interrupt Mask: Enable OCIE1A interrupt
-       *      Generate interrupt when timer reaches OCR1A
-       */
-    
-      if (false == timer_initialized_)
-      {   
-        // Setting WGM's last two bits to zero
-        TCCR1A = 0;
+        /*
+         * Waveform Generation Mode: Mode 4->CTC
+         *      In this mode once timer reaches OCR1A value
+         *      it will go back to zero, and start counting again.
+         *      
+         * Prescaler: 1
+         *      The clock will receive the system clocl i.e. 16MHz
+         *      
+         * Output Compare Register: 16000
+         *      To generate 1ms interrupt
+         *      
+         * Interrupt Mask: Enable OCIE1A interrupt
+         *      Generate interrupt when timer reaches OCR1A
+         */
       
-        // Setting WGM's other two bits
-        TCCR1B &= ~(1 << WGM13);
-        TCCR1B |= (1 << WGM12);
-      
-        // Selecting prescaler 1
-        TCCR1B |= (1 << CS10);
-        TCCR1B &= ~(1 << CS11);
-        TCCR1B &= ~(1 << CS12); 
-    
-        // Clear counter register
-        TCNT1 = 0;
-      
-        // Set OCR1A to generate 1ms 
-        OCR1A = 16000;
-    
-        // Enable the interrupt
-        TIMSK1 = (1 << OCIE1A);
-    
-        // Enable global interrupt
-        sei();
-    
-        // Set flag to avoid re-initialization
-        timer_initialized_ = true;
-      }
+        if (false == timer_initialized_)
+        {   
+            // Setting WGM's last two bits to zero
+            TCCR1A = 0;
+          
+            // Setting WGM's other two bits
+            TCCR1B &= ~(1 << WGM13);
+            TCCR1B |= (1 << WGM12);
+          
+            // Selecting prescaler 1
+            TCCR1B |= (1 << CS10);
+            TCCR1B &= ~(1 << CS11);
+            TCCR1B &= ~(1 << CS12); 
+        
+            // Clear counter register
+            TCNT1 = 0;
+          
+            // Set OCR1A to generate 1ms 
+            OCR1A = 16000;
+        
+            // Enable the interrupt
+            TIMSK1 = (1 << OCIE1A);
+        
+            // Enable global interrupt
+            sei();
+        
+            // Set flag to avoid re-initialization
+            timer_initialized_ = true;
+        }
     }
 
     /*********************************************************************** 
@@ -144,8 +144,8 @@ class LinkedList
      ***********************************************************************/
     void DisableTimerIsr(void)
     {
-      TIMSK1 &= ~(1 << OCIE1A);
-      timer_initialized_ = false;
+        TIMSK1 &= ~(1 << OCIE1A);
+        timer_initialized_ = false;
     }
 };
 
@@ -160,24 +160,24 @@ static LinkedList TimerList;
 
 TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
 {
-  elapsed_time_ms_ = 0; 
-  interval_ms_ = interval_ms;
-  is_running_ = false;
-  repeat_ = repeat; 
-  cb_ = cb;
+    elapsed_time_ms_ = 0; 
+    interval_ms_     = interval_ms;
+    is_running_      = false;
+    repeat_          = repeat; 
+    cb_              = cb;
 }
 
 
 void TimerEvent::SetInterval(uint32_t interval_ms)
 {
-  interval_ms_ = interval_ms;
+    interval_ms_ = interval_ms;
 }
 
 
 void TimerEvent::Start(uint32_t interval_ms)
 {
-  interval_ms_ = interval_ms;
-  Start();
+    interval_ms_ = interval_ms;
+    Start();
 }
 
 
@@ -203,59 +203,59 @@ void TimerEvent::Start(uint32_t interval_ms)
  */
 void TimerEvent::Start(void)
 {
-  // If no time is provided, dont include it
-  if (0 == interval_ms_)
-  {
-    return;
-  }
-    
-  // Is it already in the LinkedList
-  if(TimerList.EventExists(this) == true)
-  {
-    if (true == is_running_)
+    // If no time is provided, dont include it
+    if (0 == interval_ms_)
     {
-      // It is already running, don't include
-      return;
+        return;
     }
-  }
-  else
-  {
-    TimerList.InsertEvent(this);
-  }
-
-  elapsed_time_ms_ = interval_ms_;
-  is_running_ = true;
-  TimerList.no_of_events_running_++;
-
-  // Note: If it is already initialized, init() won't init timer again.
-  TimerList.InitTimerIsr(); 
+      
+    // Is it already in the LinkedList
+    if(TimerList.EventExists(this) == true)
+    {
+        if (true == is_running_)
+        {
+          // It is already running, don't include
+          return;
+        }
+    }
+    else
+    {
+        TimerList.InsertEvent(this);
+    }
+  
+    elapsed_time_ms_ = interval_ms_;
+    is_running_ = true;
+    TimerList.no_of_events_running_++;
+  
+    // Note: If it is already initialized, init() won't init timer again.
+    TimerList.InitTimerIsr(); 
 }
 
 
 void TimerEvent::Stop(void)
 {
-  if (true == is_running_)
-  {
-    if (TimerList.no_of_events_running_ > 0)
+    if (true == is_running_)
     {
-      TimerList.no_of_events_running_--;
+        if (TimerList.no_of_events_running_ > 0)
+        {
+          TimerList.no_of_events_running_--;
+        }
     }
-  }
+    
+    is_running_ = false;
+    elapsed_time_ms_ = 0;
   
-  is_running_ = false;
-  elapsed_time_ms_ = 0;
-
-  if (0 == TimerList.no_of_events_running_)
-  {
-    TimerList.DisableTimerIsr();
-  }
+    if (0 == TimerList.no_of_events_running_)
+    {
+        TimerList.DisableTimerIsr();
+    }
 }
 
 
 void TimerEvent::Restart(void)
 {
-  Stop();
-  Start();
+    Stop();
+    Start();
 }
 
 
@@ -266,43 +266,43 @@ void TimerEvent::Restart(void)
  ***********************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
-  sTimerEventNode *cur = TimerList.head_;
-
-  // Decrease 1ms from the elapsed_time of the running events
-  while (cur != nullptr)
-  {
-    if (cur->timer_event->is_running_)
+    sTimerEventNode *cur = TimerList.head_;
+  
+    // Decrease 1ms from the elapsed_time of the running events
+    while (cur != nullptr)
     {
-      // Decrement 1ms
-      cur->timer_event->elapsed_time_ms_--;
+        if (cur->timer_event->is_running_)
+        {
+            // Decrement 1ms
+            cur->timer_event->elapsed_time_ms_--;
+        }
+        cur = cur->next;
     }
-    cur = cur->next;
-  }
-
-  // Now take out the expired Nodes and execute their callbacks
-  cur = TimerList.head_;
-  while (cur != nullptr)
-  {
-    if (0 == cur->timer_event->elapsed_time_ms_)
+  
+    // Now take out the expired Nodes and execute their callbacks
+    cur = TimerList.head_;
+    while (cur != nullptr)
     {
-      // Execute the callback
-      if (cur->timer_event->cb_ != nullptr)
-      {
-        cur->timer_event->cb_();
-      }
-
-      if (cur->timer_event->repeat_)
-      {
-        cur->timer_event->elapsed_time_ms_ = cur->timer_event->interval_ms_;
-      }
-      else
-      {
-        // Remove the instance from the linkedList
-        cur->timer_event->Stop();
-      }
-    }
-    cur = cur->next;
-  }        
+        if (0 == cur->timer_event->elapsed_time_ms_)
+        {
+            // Execute the callback
+            if (cur->timer_event->cb_ != nullptr)
+            {
+                cur->timer_event->cb_();
+            }
+      
+            if (cur->timer_event->repeat_)
+            {
+                cur->timer_event->elapsed_time_ms_ = cur->timer_event->interval_ms_;
+            }
+            else
+            {
+                // Remove the instance from the linkedList
+                cur->timer_event->Stop();
+            }
+        }
+        cur = cur->next;
+    }        
 }
 
 /*********************************************************************** 
@@ -314,19 +314,19 @@ ISR(TIMER1_COMPA_vect)
  ***********************************************************************/
 void Timer_PrintAllInstance(void)
 {
-  #if DEBUG
-  sTimerEventNode *cur = TimerList.head_;
-  DBG_Println("PrintAllInstance:");
+    #if DEBUG
+    sTimerEventNode *cur = TimerList.head_;
+    DBG_Println("PrintAllInstance:");
+    
+    while (cur != nullptr)
+    {
+        uint32_t address = (uint32_t)cur;
+        Serial.print(address, HEX);
+        Serial.println();
+        cur = cur->next;
+    }
   
-  while (cur != nullptr)
-  {
-    uint32_t address = (uint32_t)cur;
-    Serial.print(address, HEX);
-    Serial.println();
-    cur = cur->next;
-  }
-
-  DBG_Println(F("PrintAllInstance: Done"));
-  #endif
+    DBG_Println(F("PrintAllInstance: Done"));
+    #endif
 }
 /*****END OF FILE****/

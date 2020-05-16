@@ -33,9 +33,9 @@ class LinkedList
     
     LinkedList()
     {
-        head_ = nullptr;
+        head_                 = nullptr;
         no_of_events_running_ = 0;
-        timer_initialized_ = false;
+        timer_initialized_    = false;
     }
 
     /*********************************************************************** 
@@ -69,7 +69,7 @@ class LinkedList
      * @param   obj - sTimerEvent_t object pointer
      * @return  true or false
      ***********************************************************************/
-    bool EventExists(TimerEvent *obj)
+    bool EventExists(const TimerEvent *obj)
     {
         sTimerEventNode *cur = head_;
       

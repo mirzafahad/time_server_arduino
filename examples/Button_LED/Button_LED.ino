@@ -1,10 +1,14 @@
-/*
+/***********************************************************************
+ * @file       : Button_LED.ino
+ * @author     : Fahad Mirza (fahadmirza8@gmail.com)
+ * @brief      : Multiple GPIO example
+ *
  * In this example we will check a button state every 250ms
  * and if the button is pressed D13 LED will be turned ON 
  * for 2s.
  * 
  * Button will be connected to pin D2 and will be active low.
- */
+ ***********************************************************************/
 
 #include "time_server.h"
 

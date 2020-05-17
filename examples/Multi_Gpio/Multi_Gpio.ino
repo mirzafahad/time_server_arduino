@@ -1,4 +1,8 @@
-/*
+/***********************************************************************
+ * @file       : Multi_Gpio.ino
+ * @author     : Fahad Mirza (fahadmirza8@gmail.com)
+ * @brief      : Multiple GPIO example
+ *
  * In this example we will change the state of three pins, 
  * periodically, using the time server library.
  * 
@@ -8,7 +12,7 @@
  * 
  * You can hook up two LED on D8 and D9 or just simply use a
  * logic analyzer/ oscilloscope to see the changes.
- */
+ ***********************************************************************/
 #include "time_server.h"
 
 

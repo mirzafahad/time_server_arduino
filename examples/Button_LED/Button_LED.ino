@@ -1,27 +1,36 @@
+/*
+ * In this example we will check a button state every 250ms
+ * and if the button is pressed D13 LED will be turned ON 
+ * for 2s.
+ * 
+ * Button will be connected to pin D2 and will be active low.
+ */
+
 #include "time_server.h"
 
 
 // Callback functions for timer events
 static void onLedTimerEvent(void);
-static void onD8TimerEvent(void);
-static void onD9TimerEvent(void);
+static void onButtonTimerEvent(void);
 
-// TimerEvent(Callback, interval_ms, repeat)
-static TimerEvent LedTimer(onLedTimerEvent, 250, true);
-static TimerEvent D8Timer(onD8TimerEvent, 500, true);
-static TimerEvent D9Timer(onD9TimerEvent, 1000, true);
+/**** Private Variables ******************************/
+const uint8_t BUTTON_PIN = 2;
+
+// TimerEvent(Callback, Interval_ms)
+static TimerEvent LedTimer(onLedTimerEvent, 2000);
+static TimerEvent ButtonTimer(onButtonTimerEvent, 250, true);
+
 
 
 void setup() 
 {
     Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(8, OUTPUT);
-    pinMode(9, OUTPUT);
+
+    // initialize the pushbutton pin as an input:
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
   
-    LedTimer.Start();
-    D8Timer.Start();
-    D9Timer.Start();
+    ButtonTimer.Start();
 }
 
 void loop() 
@@ -33,15 +42,32 @@ void loop()
 
 void onLedTimerEvent(void)
 {
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    // Turn OFF the LED
+    digitalWrite(LED_BUILTIN, LOW);
 }
 
-void onD8TimerEvent(void)
+void onButtonTimerEvent(void)
 {
-  digitalWrite(8, !digitalRead(8));
-}
+    // Read the pushbutton value into a variable
+    uint8_t buttonState = digitalRead(BUTTON_PIN);
 
-void onD9TimerEvent(void)
-{
-  digitalWrite(9, !digitalRead(9));
+    if (LOW == buttonState)
+    {
+        digitalWrite(LED_BUILTIN, HIGH);
+        LedTimer.Start();   
+    }
+
+    /*
+     * NOTE: For this example we don't need debounce.
+     * Even if there are an oscillation dutring a button
+     * press, LedTimer.Start() will only execute once.
+     * Once a timer event is start working, you cannot
+     * start it again. If your event is already started
+     * and you call the Start() again it will check and
+     * see it is already running and will return immediately.
+     * 
+     * In any case if you want restart an event after it is
+     * already started, use Restart().
+     * 
+     */
 }

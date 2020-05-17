@@ -32,14 +32,14 @@ Currently the library support only ATMega328 i.e. Arduino Uno, Nano, and Pro (5V
 * Stop ()
 * Restart()
 
-## Examples
+## Example
 There are several examples available in the examples folder. One of the simple examples is below.
 
 ```
 
 	#include "time_server.h"
 	
-	// Callback functions for timer events
+	// Callback function for timer event
 	static void onBlinkTimerEvent(void);
 	
 	// TimerEvent(Callback, interval_ms, repeat)

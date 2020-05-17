@@ -4,7 +4,7 @@ This time server doesn't represent the traditional [time server](https://en.wiki
 
 #### Under-the-hood
 Time Server uses ATMega328’s Timer 1. That timer generates an interrupt every 1ms. So, if you provide a callback to the time server and asked the server to execute it every 500ms, timer ISR will subtract 1ms from callback’s “Interval” until it reaches zero. If you have more than one TimerEvent, the time server will keep track of all using Linked List.
-Checkout examples to learn how to utilize the library. A blog about it can be found [here]( https://mirzafahad.github.io/2020-04-30-time-server/).
+Checkout examples to learn how to utilize the library. A blog about it can be found [here](https://mirzafahad.github.io/2020-05-17-time-server/).
 
 #### Caution
 As this library uses Timer 1, you cannot use the **Servo** library and **analogWrite()** on pins 9 and 10.

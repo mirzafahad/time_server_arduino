@@ -2,7 +2,7 @@
  * @file       : time_server.h
  * @author     : Fahad Mirza (fahadmirza8@gmail.com)
  * @version    : V1.0
- * @brief      : Time server driver
+ * @brief      : Time server header file
  ***********************************************************************/
 
 #ifndef TIME_SERVER_H_

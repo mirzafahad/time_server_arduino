@@ -1,6 +1,6 @@
 /***********************************************************************
  * @file      time_server.cpp
- * @author    Fahad Mirza (fmirz007@7-11.com) 
+ * @author    Fahad Mirza (fahadmirza8@gmail.com) 
  * @version   V1.0
  * @brief     Time server infrastructure
  ***********************************************************************/

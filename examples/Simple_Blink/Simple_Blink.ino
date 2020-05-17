@@ -1,9 +1,10 @@
-/*
- * A Simple Timer Server Example
- * 
- * This example shows how to blink an LED every
- * 250ms using the time server library
- */
+/***********************************************************************
+ * @file       : Simple_Blink.ino
+ * @author     : Fahad Mirza (fahadmirza8@gmail.com)
+ * @brief      : A Simple Timer Server Example
+ *               This example shows how to blink an LED every
+ *               250ms using the time server library.
+ ***********************************************************************/
  
 #include "time_server.h"
 
@@ -13,8 +14,8 @@ static void onBlinkTimerEvent(void);
 
 
 // TimerEvent(Callback, interval_ms, repeat)
-static TimerEvent BlinkTimer(onBlinkTimerEvent, 250, true); // Repeat the event every 250ms
-
+// Repeat the event every 250ms
+static TimerEvent BlinkTimer(onBlinkTimerEvent, 250, true); 
 
 void setup() 
 {

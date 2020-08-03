@@ -1,5 +1,9 @@
 # A Time Server Library for Arduino Uno
----
+[![License](https://img.shields.io/badge/license-MIT-red)](https://opensource.org/licenses/MIT)
+[![Blog](https://img.shields.io/badge/blog-post-yellow)](https://mirzafahad.github.io/2020-05-17-time-server/)
+
+:star: Star me on GitHub — it helps!
+
 This time server doesn't represent the traditional [time server](https://en.wikipedia.org/wiki/Time_server) that you use through a computer network. This time server takes care of all your time-sensitive piece-of-code. You give the Time Server a function in the form of callback function and tell it to execute within a certain time, periodically, or one shot, and it will take care of it.
 
 #### Under-the-hood

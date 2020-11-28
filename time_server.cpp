@@ -1,36 +1,63 @@
-/***********************************************************************
+/*****************************************************************************/
+/*!
  * @file      time_server.cpp
- * @author    Fahad Mirza (fahadmirza8@gmail.com) 
- * @version   V1.0
- * @brief     Time server infrastructure
- ***********************************************************************/
-
-/*** Includes **********************************************************/
+ * @mainpage  Arduino Time Server Library
+ *
+ * @section intro_sec Introduction
+ * This is the documentation for a Time Server library for the
+ * Arduino platform. It is designed specifically to work with the 
+ * ATmega328's Timer 1 peripheral.
+ *
+ * @section author Author
+ *
+ * Written by Fahad Mirza (fahadmirza8@gmail.com).
+ *
+ * @section license License
+ *
+ * BSD license, all text here must be included in any redistribution.
+ * 
+ * @section version Version
+ * 
+ * V1.0
+ */
+/*****************************************************************************/
+/*--- Includes --------------------------------------------------------------*/
 
 #include "time_server.h"
 
 
-/*** Typedefs **********************************************************/
-// TimerEvents will be tracked by a linked list
-// Create structure for the linked list
+/*--- Typedefs --------------------------------------------------------------*/
+/** TimerEvents will be tracked by a linked list. 
+    This is the structure for the linked list.*/
 struct sTimerEventNode
 {
-    TimerEvent      *timer_event;
-    sTimerEventNode *next;
+    TimerEvent      *timer_event;    ///< Timer Event info
+    sTimerEventNode *next;           ///< Pointer to next timer object
 };
 
+/*****************************************************************************/
+/*! 
+    @brief  LinkedList class to keep track of timer-events.
+*/
+/*****************************************************************************/
 class LinkedList
 {
   public:
+    /** Header of the LinkedList.*/
     sTimerEventNode *head_;
     
-    // Keep track of how many events are running. If it
-    // is down to zero, disable the timer interrupt.
+    /** Number of events running. If it running events are down to zero, 
+	    disable the timer interrupt.*/
     uint8_t no_of_events_running_;
 
-    // A flag to keep track if the timer interrupt is already initialized
+    /** A flag to keep track if the timer interrupt is already initialized.*/
     bool timer_initialized_;
     
+	/*************************************************************************/
+	/*!
+     * @brief   LinkedList constructor
+     */
+	 /************************************************************************/
     LinkedList()
     {
         head_                 = nullptr;
@@ -38,11 +65,13 @@ class LinkedList
         timer_initialized_    = false;
     }
 
-    /*********************************************************************** 
+    /*************************************************************************/
+	/*!
      * @brief   Add timer event to the linked list
-     * @param   obj - sTimerEvent_t object pointer
-     * @return  none
-     ***********************************************************************/
+     * @param   obj
+	 *          A refernce to Timer object (sTimerEvent_t)
+     */
+	 /************************************************************************/
     void InsertEvent(TimerEvent *obj)
     {
         if (nullptr == head_)
@@ -63,12 +92,14 @@ class LinkedList
         }  
     }
 
-    /*********************************************************************** 
+    /*************************************************************************/
+	/*!
      * @brief   Check if a TimerEvent instance is already exist  
      *          in the linked list
      * @param   obj - sTimerEvent_t object pointer
      * @return  true or false
-     ***********************************************************************/
+     */
+	 /************************************************************************/
     bool EventExists(const TimerEvent *obj)
     {
         sTimerEventNode *cur = head_;
@@ -84,11 +115,11 @@ class LinkedList
         return false;
     }
  
-    /*********************************************************************** 
+    /*************************************************************************/
+	/*!
      * @brief   Initialize timer1 interrupt
-     * @param   none
-     * @return  none
-     ***********************************************************************/
+     */
+	 /************************************************************************/
     void InitTimerIsr(void)
     {
         /*
@@ -137,11 +168,11 @@ class LinkedList
         }
     }
 
-    /*********************************************************************** 
+    /*************************************************************************/
+	/*!
      * @brief   Disable timer 1 interrupt
-     * @param   none
-     * @return  none
-     ***********************************************************************/
+     */
+	 /************************************************************************/
     void DisableTimerIsr(void)
     {
         TIMSK1 &= ~(1 << OCIE1A);
@@ -150,13 +181,13 @@ class LinkedList
 };
 
 
-/*** Private Variables *************************************************/
+/*--- Private Variables -----------------------------------------------------*/
 static LinkedList TimerList;
 
 
 
 
-/*** Functions Definitions *********************************************/
+/*--- Functions Definitions -------------------------------------------------*/
 
 TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)
 {
@@ -259,11 +290,11 @@ void TimerEvent::Restart(void)
 }
 
 
-/*********************************************************************** 
+/*****************************************************************************/
+/*!
  * @brief   Timer 1 interrupt ISR
- * @param   none
- * @return  none
- ***********************************************************************/
+ */
+/*****************************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
     sTimerEventNode *cur = TimerList.head_;
@@ -305,13 +336,13 @@ ISR(TIMER1_COMPA_vect)
     }        
 }
 
-/*********************************************************************** 
+/*****************************************************************************/
+/*!
  * @brief   Print timer instance 
  *          Debug function to print all timer instances' address in 
  *          the linked list
- * @param   none
- * @return  none
- ***********************************************************************/
+ */
+/*****************************************************************************/
 void Timer_PrintAllInstance(void)
 {
     #if DEBUG

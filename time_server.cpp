@@ -185,8 +185,6 @@ class LinkedList
 static LinkedList TimerList;
 
 
-
-
 /*--- Functions Definitions -------------------------------------------------*/
 
 TimerEvent::TimerEvent(Callback cb, uint32_t interval_ms, boolean repeat)

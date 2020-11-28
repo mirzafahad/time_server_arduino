@@ -24,8 +24,8 @@ typedef void (*Callback)(void);
  * @brief Time Server helps you to keep running time sensitive
  *        functions.
  *
- *		  Every 1ms time server will check which TimerEvents objects are ready 
- *        to execute. It is advisable to keep callback functions short.
+ *		  Every 1ms time server will check which TimerEvents objects are
+ *ready to execute. It is advisable to keep callback functions short.
  *
  *        Note:
  *        The class also assumes any TimerEvent objects that you will

@@ -1,5 +1,5 @@
 # A Time Server Library for Arduino Uno 
-[![Build Status](https://travis-ci.org/mirzafahad/time_server_arduino.svg?branch=master)](https://travis-ci.org/mirzafahad/time_server_arduino)
+![workflow status](https://github.com/mirzafahad/time_server_arduino/actions/workflows/arduino.yml/badge.svg)
 [![License](https://img.shields.io/badge/license-MIT-red)](https://opensource.org/licenses/MIT)
 [![Blog](https://img.shields.io/badge/blog-post-yellow)](https://mirzafahad.github.io/2020-05-17-time-server/)
 
